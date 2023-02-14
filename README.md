@@ -1,158 +1,161 @@
-# iot-device-sdk-python开发指南
-# 目录
+   English | [简体中文](./README_CN.md) 
 
-- [SDK版本](#0)
+# iot-device-sdk-python Development Guide
+# Contents
 
-- [前言](#1)
+- [SDK Version](#0)
 
-- [SDK简介](#2)
- 
-- [准备工作](#3)
+- [About This Document](#1)
 
-- [上传产品模型并注册设备](#4)
+- [SDK Overview](#2)
 
-- [在线调试工具](#5)
+- [Preparations](#3)
 
-- [设备初始化](#6)
+- [Uploading a Product Model and Registering a Device](#4)
 
-- [命令下发](#7)
+- [Online Debugging](#5)
 
-- [平台消息下发/设备消息上报](#8)
+- [Device Initialization](#6)
 
-- [属性上报/设置](#9)
+- [Command Delivery](#7)
 
-- [设备影子](#10)
+- [Platform Message Delivery/Device Message Reporting](#8)
 
-- [面向物模型编程](#11)
+- [Property Reporting/Configuration](#9)
 
-- [OTA升级](#12)
+- [Device Shadow](#10)
 
-- [文件上传/下载](#13)
+- [Profile-Oriented Programming](#11)
 
-- [设备时间同步](#14)
+- [OTA Upgrade](#12)
 
-- [网关与子设备管理](#15)
+- [File Upload/Download](#13)
 
-- [上报设备信息](#16)
+- [Device Time Synchronization](#14)
 
-- [设备日志上报说明](#17)
+- [Gateway and Child Device Management](#15)
 
-- [开源协议](#18)
+- [Device Information Reporting](#16)
 
-- [接口文档]()
+- [Device Log Reporting](#17)
 
-- [更多文档](https://support.huaweicloud.com/devg-iothub/iot_02_0178.html)
+- [Open Source Protocols](#18)
 
-<h1 id="0">SDK版本</h1>
+- [API Reference](./IoT-Device-SDK-Python-API文档.pdf)
 
-SDK版本：xxxx
+- [More Documents](https://support.huaweicloud.com/intl/en-us/devg-iothub/iot_02_0178.html)
 
-发布日期：2021-xx-xx
+<h1 id="0">SDK Version</h1>
 
-<h1 id="1">前言</h1>
-iot-device-sdk-python（以下简称SDK）提供设备接入华为云IoT物联网平台的Java版本的SDK，提供设备和平台之间通讯能力，
-以及设备服务、网关服务、OTA等高级服务，并且针对各种场景提供了丰富的demo代码。
-IoT设备开发者使用SDK可以大大简化开发复杂度，快速的接入平台。
+SDK version: v1.0.0
 
-本文通过实例讲述SDK帮助设备用MQTT协议快速连接到华为物联网平台。
+Release date: 2023-01-01
 
-华为云官网：https://www.huaweicloud.com/
+<h1 id="1">About This Document</h1>
 
-点击华为云官网右上角“控制台”进入管理控制台，在页面上方搜索“IoTDA”进入设备接入服务控制台。
+iot-device-sdk-python (SDK for short) provides abundant demo code for IoT devices to communicate with the platform and implement device, gateway, and over-the-air (OTA) services.
+The SDK greatly simplifies device development and enables quick access to the platform.
 
-<h1 id="2">SDK简介</h1>
+This document uses the examples to describe how to use the SDK to quickly connect devices to the Huawei Cloud IoT platform via MQTT protocol.
 
-SDK面向运算、存储能力较强的嵌入式终端设备，开发者通过调用SDK接口，便可实现设备与物联网平台的上下行通讯。SDK当前支持的功能有：
-*  支持设备消息、属性上报、属性读写、命令下发
-*  支持OTA升级
-*  支持密码认证和证书认证两种设备认证方式
-*  支持设备影子查询
-*  支持网关服务、子设备管理、子设备消息转发
-*  支持面向物模型编程
-*  支持自定义topic
-*  支持文件上传/下载
+Official website: https://www.huaweicloud.com/intl/en-us/
 
-**SDK目录结构**
+In the upper right corner of the Huawei Cloud official website, click **Console** to access the management console. On the top of the page, search for **IoTDA** to access the IoTDA console.
 
-iot_device_sdk_python：sdk代码
+<h1 id="2">SDK Overview</h1>
 
-iot_device_demo：demo演示代码
+The SDK is designed for embedded devices with powerful computing and storage capabilities. You can call SDK APIs to implement communication between devices and the platform. The SDK currently supports:
+*  Device message reporting, property reporting, property reading and writing, and command delivery
+*  OTA upgrades
+*  Device authentication using secrets and certificates
+*  Device shadow query
+*  Gateway services, child device management, and child device message forwarding
+*  Profile-oriented programming
+*  Custom topics
+*  File upload and download.
 
-iot_gateway_demo：网关与子设备管理demo演示代码
+**SDK Directory Structure**
 
-<h1 id="3">准备工作</h1>
+**iot_device_sdk_python**: SDK code
 
-*  已安装Python 3.8.2
+**iot_device_demo**: demo code
 
-*  已安装第三方类库paho-mqtt：1.5.0  (必需)
+**iot_gateway_demo**: demo code for gateway and child device management
 
-*  已安装第三方类库schedule: 1.1.0   (必需)
+<h1 id="3">Preparations</h1>
 
-*  已安装第三方类库requests: 2.25.1  （可选，在网关与子设备管理demo演示中使用）
+*  You have installed Python 3.8.2.
 
-*  已安装第三方类库tornado: 6.1     （可选，在网关与子设备管理demo演示中使用）
+*  You have installed the third-party class library paho-mqtt: 1.5.0 (mandatory).
 
+*  You have installed the third-party class library schedule: 1.1.0 (mandatory).
 
-<h1 id="4">上传产品模型并注册设备</h1>
+*  You have installed the third-party class library requests: 2.25.1 (optional, used in the demo of gateway and child device management).
 
-为了方便体验，我们提供了一个烟感的产品模型，烟感会上报烟雾值、温度、湿度、烟雾报警、还支持响铃报警命令。
-以烟感例，体验消息上报、属性上报、命令响应等功能。
+*  You have installed the third-party class library tornado: 6.1 (optional, used in the demo of gateway and child device management).
 
-* 访问[设备接入服务](https://www.huaweicloud.com/product/iothub.html) ，单击“立即使用”进入设备接入控制台。
 
-* 查看平台接入地址。
+<h1 id="4">Uploading a Product Model and Registering a Device</h1>
 
-   ![](./doc/upload_profile_0.png)
+A smoke detector product model is provided to help you understand the product model. This smoke detector can report the smoke density, temperature, humidity, and smoke alarms, and execute the ring alarm command.
+The following uses the smoke detector as an example to introduce the procedures of message reporting, property reporting, and command response.
 
-* 查看MQTT设备接入地址，保存该地址。
+* Visit the [IoTDA product page](https://www.huaweicloud.com/intl/en-us/product/iotda.html) and click **Access Console** to go to the IoTDA console.
 
-   ![](./doc/upload_profile_1.png)
+* View the platform access address.
 
-* 在设备接入控制台选择“产品”，单击右上角的“创建产品”，在弹出的页面中，填写“产品名称”、“协议类型”、“数据格式”、“厂商名称”、“所属行业”、“设备类型”等信息，然后点击右下角“立即创建”。
+   ![MD1](./doc/figure_en/MD1.png)
 
-   - 协议类型选择“MQTT”；
+* View and save the MQTT device access address.
 
-   - 数据格式选择“JSON”。
- 
-   ![](./doc/upload_profile_2.png)
+   ![MD2](./doc/figure_en/MD2.png)
 
-* 产品创建成功后，单击“详情”进入产品详情，在功能定义页面，单击“上传模型文件”，上传烟感产品模型[smokeDetector](https://support.huaweicloud.com/devg-iothub/resource/smokeDetector_cb097d20d77b4240adf1f33d36b3c278_smokeDetector.zip) 。
-生成的产品模型如下图所示。
+* On the IoTDA console, choose **Products** in the navigation pane, and click **Create Product** in the upper right corner. On the displayed page, specify the product name, protocol, data type, manufacturer, industry, and device type, and click **OK**.
 
-   ![](./doc/upload_profile_2_1.png)
+   - Select the **MQTT** protocol.
 
-* 在左侧导航栏，选择“ 设备 > 所有设备”，单击右上角“注册设备”，在弹出的页面中，填写注册设备参数，然后单击“确定”。
+   - Select the **JSON** data format.
 
-   ![](./doc/upload_profile_3.png)
+   ![MD3](./doc/figure_en/MD3.png)
 
-* 设备注册成功后保存设备标识码、设备ID、密钥。
+* After the product is created, click **View** to access its details. On the **Model Definition** page, click **Import from Local** to upload the smoke detector product model [smokeDetector](https://iot-developer.obs.cn-north-4.myhuaweicloud.com:443/smokeDetector.zip).
+  The following figure shows the generated product model.
 
-<h1 id="5">在线调试工具</h1>>
-在控制台左侧导航栏，选择”监控运维 > 在线调试“可以进入在线调试页面。
-页面中有命令下发、消息跟踪功能。
+  ![MD4](./doc/figure_en/MD4.png)
 
-*  点击页面右上角的”选择设备“选择已注册的设备
+* In the navigation pane, choose **Devices** > **All Devices**. In the upper right corner, click **Individual Register**. On the page displayed, set device registration parameters and click **OK**.
 
-*  点击”IoT平台“会显示消息跟踪
+   ![MD5](./doc/figure_en/MD5.png)
 
-*  点击页面右下角的”发送“可以发送命令给设备
+* After the device is registered, save the node ID, device ID, and secret.
 
-![](./doc/debug_page.png)
+<h1 id="5">Online Debugging</h1>
 
-<h1 id="6">设备初始化</h1>
+In the navigation pane, choose **O&M** > **Online Debug**. The **Online Debugging** page is displayed.
+Command delivery and message tracing are available.
 
-* 创建设备。
+*  Click **Select Device** in the upper right corner to select a registered device.
 
-   设备接入平台时，物联网平台提供密钥和证书两种鉴权方式。
+*  Click **IoT Platform**. The message tracing result is displayed.
 
-   * 如果您使用1883端口通过密钥鉴权接入平台，需要写入获取的设备ID、密钥。
+*  Click **Send** in the lower right corner to send the command to the device.
+
+![MD6](./doc/figure_en/MD6.png)
+
+<h1 id="6">Device Initialization</h1>
+
+* Create a device.
+
+   Secret authentication and certificate authentication are available for device access.
+
+   * If you use port 1883 and secret authentication for device access, write the obtained device ID and secret.
 
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # 需要改为用户保存的接入地址
+       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # Change the access address to the one you saved.
        port = 1883
        device_id = "< Your DeviceId >"
        sc = "< Your Device Secret >"
-   
+
        device = IotDevice()
        device.create_by_secret(server_uri=server_uri,
                                port=port,
@@ -160,17 +163,17 @@ iot_gateway_demo：网关与子设备管理demo演示代码
                                secret=sc)
    ```
 
-   * 如果您使用8883端口通过密钥鉴权接入平台（推荐使用，SDK的demo均通过此方法接入平台），需要写入获取的设备ID、密钥以及预置CA证书。
-   预置的证书：/iot_device_demo/resources/GlobalSignRSAOVSSLCA2018.crt.pem
-  
+   * If you use port 8883 and secret authentication for device access (recommended, all the demo access the platform by this method), write the obtained device ID, secret, and preset CA certificate.
+     Preset certificate: **/iot_device_demo/resources/GlobalSignRSAOVSSLCA2018.crt.pem**
+
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # 需要改为用户保存的接入地址
+       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # Change the access address to the one you saved.
        port = 8883
        device_id = "< Your DeviceId >"
        sc = "< Your Device Secret >"
-       # iot平台的CA证书，用于服务端校验
+       # CA certificate of the IoT platform, used for server authentication.
        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
-   
+
        device = IotDevice()
        device.create_by_secret(server_uri=server_uri,
                                port=port,
@@ -179,60 +182,58 @@ iot_gateway_demo：网关与子设备管理demo演示代码
                                iot_cert_file=iot_ca_cert_path)
    ```
 
-* 调用init接口，建立连接。该接口是阻塞调用，如果建立连接成功会返回0。
+* Call the **init** function to connect the device to the platform. This is a blocking function and it returns **0** if the device and the platform are connected.
 
    ```
         if device.connect() != 0:
             return
    ```
 
-* 连接成功后，设备和平台之间开始通讯。调用IotDevice的get_client方法获取设备客户端，客户端提供了消息、属性、命令等通讯接口。
-例如：
+* After the connection is established, the device starts to communicate with the platform. Call the **get_client** method of the **IotDevice** class to obtain the device client, which provides communication APIs related to messages, properties, and commands.
+  Example:
    ```
         device.get_client().set_command_listener(...)
         device.get_client().report_device_message(...)
    ```
 
-*  关于IotDevice类的详细信息参见/iot_device_sdk_python/iot_device.py
+*  For details about the **IotDevice** class, see **/iot_device_sdk_python/iot_device.py**.
 
-若连接成功，在线调试页面的”消息跟踪“会显示：
+If the connection is successful, the following information is displayed in the **Message Tracing** area on the **Online Debugging** page:
 
-![](./doc/init_1.png)
+![MD7](./doc/figure_en/MD7.png)
 
-运行日志为：
+Run logs:
 
-![](./doc/init_2.png)
+![MD8](./doc/figure_en/MD8.png)
 
-<h1 id="7">命令下发</h1>
+<h1 id="7">Command Delivery</h1>
 
-/iot_device_demo/command_sample.py是一个处理平台命令下发的例子。
-设置命令监听器用来接收平台下发的命令，在回调接口里，将对命令进行处理，并上报响应。
+**/iot_device_demo/command_sample.py** is an example of processing commands delivered by the IoT platform. You can set a command listener to receive commands delivered by the platform. The callback needs to process the commands and report responses.
 
-下面代码的CommandSampleListener类继承CommandListener类，实现了其中的on_command方法。
-将CommandSampleListener的实例设置为命令监听器，即：
+The **CommandSampleListener** class in the following code inherits the **CommandListener** class and implements the **on_command** method. Set the **CommandSampleListener** instance to the command listener, which is:
 
 ```
 device.get_client().set_command_listener(CommandSampleListener(device))
 ```
 
-当device收到命令时将自动调用监听器中的on_command方法。
-例子在on_command方法中打印命令的内容，并将响应返回给平台。
+When receiving a command, the device automatically calls the **on_command** method in the listener.
+The command content is printed in the **on_command** method, and the response is returned to the platform.
 
 ```
 class CommandSampleListener(CommandListener):
     def __init__(self, iot_device: IotDevice):
-        """ 传入一个IotDevice实例 """
+        """ Pass an IotDevice instance. """
         self.device = iot_device
 
     def on_command(self, request_id, service_id, command_name, paras):
         logger.info('on_command requestId: ' + request_id)
-        # 处理命令
+        # Process commands.
         logger.info('begin to handle command')
 
         """ code here """
         logger.info(str(paras))
 
-        # 命令响应
+        # Command response
         command_rsp = CommandRsp()
         command_rsp.result_code = 0
         command_rsp.response_name = command_name
@@ -244,7 +245,7 @@ def run():
     
     < create device code here ... >
     
-    # 设置监听器
+    # Set a listener.
     device.get_client().set_command_listener(CommandSampleListener(device))
     
     if device.connect() != 0:
@@ -255,18 +256,17 @@ def run():
         time.sleep(5)
 ```
 
-执行run函数，在”在线调试“页面给设备下发命令，代码会产生以下输出：
+Run the **run** function to deliver a command to the device on the **Online Debugging** page, The code output is as follows:
 
-![](doc/command_1.png)
+![MD9](./doc/figure_en/MD9.png)
 
-同时，设备对命令的响应可以在”在线调试“的”消息跟踪“处找到。
+In addition, the device response to the command is displayed in the **Message Tracing** area of the **Online Debugging** page.
 
-![](./doc/command_2.png)
+![MD10](./doc/figure_en/MD10.png)
 
-<h1 id="8">平台消息下发/设备消息上报</h1>
+<h1 id="8">Platform Message Delivery/Device Message Reporting</h1>
 
-消息下发是指平台向设备下发消息。消息上报是指设备向平台上报消息。
-/iot_device_demo/message_sample.py是一个消息下发/上报的例子。
+Message delivery is the process in which the platform delivers messages to a device. Message reporting is the process in which a device reports messages to the platform. **/iot_device_demo/message_sample.py** shows an example of message delivery/reporting.
 
 ```
 class DeviceMsgListener(DeviceMessageListener):
@@ -277,14 +277,14 @@ class DeviceMsgListener(DeviceMessageListener):
 def run():
     < create device code here ... >
 
-    # 接收平台下行消息
+    # Receiving messages from the platform
     device.get_client().set_device_msg_listener(DeviceMsgListener())
 
     if device.connect() != 0:
         logger.error('init failed')
         return
 
-    # 定时上报消息
+    # Scheduled messages reporting
     logger.info('begin report message')
     default_publish_listener = DefaultPublishActionListener()
     while True:
@@ -293,17 +293,17 @@ def run():
         time.sleep(5)
 ```
 
-上面代码中的report_device_message方法将消息上报给平台，若发送成功，在”在线调试“页面可以看到：
+The **report_device_message** method reports the message to the platform. If the message is sent, the following information is displayed on the **Online Debugging** page.
 
-![](./doc/message_1.png)
+![MD11](./doc/figure_en/MD11.png)
 
-<h1 id="9">属性上报/设置</h1>
+<h1 id="9">Property Reporting/Configuration</h1>
 
-属性上报指的是设备将当前属性值上报给平台。属性设置指的是平台设置设备的属性值。
-/iot_device_demo/properties_sample.py是一个属性上报/设置的例子。
+A device can report current property values to the platform. Device properties can be configured on the platform.
+**/iot_device_demo/properties_sample.py** shows an example of property reporting/configuration.
 
-<h3>属性上报</h3>
-用于设备按产品模型中定义的格式将属性数据上报给平台。平台会将上报的数据赋给设备影子数据。
+<h3>Property Reporting</h3>
+Devices report property data in the format defined in the product model to the platform. The platform assigns the reported data to the device shadow.
 
 
    ```
@@ -324,39 +324,42 @@ def run():
            time.sleep(5)
    ```
 
-上面代码将周期性地上报alarm、smokeConcentration、temperature、humidity这四个属性。
-若上报成功，”在线调试“页面会显示：
+The preceding code implements scheduled reporting of the **alarm**, **smokeConcentration**, **temperature**, and **humidity** properties. If properties are reported, the following information is displayed on the **Online Debugging** page.
 
-![](./doc/properties_1.png)
+![MD12](./doc/figure_en/MD12.png)
 
-在左侧导航栏中选择”设备 > 所有设备“，选择注册的设备进行查看，在”设备影子“处可以看到刚刚上报的属性值。
+In the navigation pane, choose **Devices** > **All Devices**, select the registered device, and click the **Device Shadow** tab to view the reported property values.
 
-![](./doc/properties_2.png)
+![MD13](./doc/figure_en/MD13.png)
 
-<h3>平台设置设备属性</h3>
-若将PropertySampleListener的实例设置为属性监听器，即：
+<h3>Setting Device Properties on the Platform</h3>
+If you set the **PropertySampleListener** instance as a property listener by running the following command:
 
 ```
 device.get_client().set_properties_listener(PropertySampleListener(device))
 ```
 
-那么当device收到属性读写请求时将自动调用监听器中的on_property_set或on_property_get方法。
-其中on_property_set方法处理写属性，on_property_get方法处理读属性。
-多数场景下，用户可以直接从平台读设备影子，因此on_property_get方法不用实现。
-但如果需要支持从设备实时读属性，则需要实现此方法。
-例子在on_property_set方法中打印属性设置的内容，并将响应返回给平台。
+When receiving a property read/write request, the device automatically calls the **on_property_set** or **on_property_get** method in the listener.
+
+**on_property_set** writes properties. **on_property_get** reads properties.
+
+In most scenarios, you can directly read the device shadow on the platform, so **on_property_get** does not need to be implemented.
+
+To read device properties in real time, implement this method.
+
+The configured properties are printed in the **on_property_set** method, and the response is returned to the platform.
 
 ```
 class PropertySampleListener(PropertyListener):
     def __init__(self, iot_device: IotDevice):
-        """ 传入一个IotDevice实例 """
+        """ Pass an IotDevice instance. """
         self.device = iot_device
 
     def on_property_set(self, request_id, services: [ServiceProperty]):
-        """ 遍历service """
+        """ Traverse services. """
         for service_property in services:
             logger.info("on_property_set, service_id:" + service_property.service_id)
-            """ 遍历属性 """
+            """ Traverse properties. """
             for property_name in service_property.properties:
                 logger.info('set property name:' + property_name)
                 logger.info("set property value:" + str(service_property.properties[property_name]))
@@ -375,36 +378,37 @@ def run():
         return
 ```
 
-在”设备影子“处，点击”属性配置“可以设置属性的期望值。
-若设置的期望值与设备的上报值不一样，在设备上线时，平台会自动把期望值发送给设备。（即平台设置设备属性）
+On the **Device Shadow** tab page, click **Configure Property** to set the desired property value.
+If the desired value you set is different from the value reported by the device, the platform automatically sends the desired value to the device when it goes online. (This is the process of setting a property on the platform.)
 
-![](./doc/properties_3.png)
+![MD14](./doc/figure_en/MD14.png)
 
-运行上面的run函数，得到：
+Run the preceding **run** function. The following information is displayed.
 
-![](./doc/properties_4.png)
+![MD15](./doc/figure_en/MD15.png)
 
-<h1 id="10">设备影子</h1>
-用于设备向平台获取设备影子数据。设备可以获取到平台设备影子数据，以此来同步设备属性值，从而完成设备属性值的修改。
+<h1 id="10">Device Shadow</h1>
 
-/iot_device_demo/device_shadow_sample.py是设备获取平台设备影子数据的一个例子。
+This is used by device to get shadow data. A device can obtain device shadow data from the platform to synchronize (modify) device properties.
 
-* 设备请求获取平台的设备影子数据。
+**/iot_device_demo/device_shadow_sample.py** shows an example of obtaining device shadow data from the platform.
+
+* A device obtains device shadow data from the platform.
 
    ```
-    # 接收平台下行响应
+    # Receiving responses from the platform
     device.get_client().set_device_shadow_listener(DeviceShadowSampleListener())
 
     if device.connect() != 0:
         logger.error('init failed')
         return
 
-    # 设备侧获取平台的设备影子数据
+    # Obtaining device shadow data
     request_id = str(uuid.uuid1())
     device.get_client().get_device_shadow(request_id, {'service_id': 'smokeDetector'}, None)
    ```
 
-* 设备接收平台返回的设备影子数据。
+* A device receives shadow data returned by the platform.
 
    ```
    class DeviceShadowSampleListener(DeviceShadowListener):
@@ -413,23 +417,19 @@ def run():
            print(message)
    ```
 
-<h1 id="11">面向物模型编程</h1>
-面向物模型编程指的是，基于SDK提供的物模型抽象能力，设备代码只需要按照物模型定义设备服务，SDK就能自动的和平台通讯，
-完成属性的同步和命令的调用。相比直接调用客户端接口和平台通讯，面向物模型编程简化了设备侧代码的复杂度，
-让设备代码只需要关注业务，而不用关注和平台的通讯过程。
+<h1 id="11">Profile-Oriented Programming</h1>
 
-/iot_device_demo/smoke_detector.py是一个面向物模型编程的例子。
+You can use the profile capabilities provided by the SDK to define device services. The SDK can automatically communicate with the platform to synchronize properties and call commands. Compared with directly calling client APIs to communicate with the platform, profile-oriented programming simplifies device-side code. In this way, device-side code can focus on services and does not need to implement communications with the platform. **/iot_device_demo/smoke_detector.py** shows an example of profile-oriented programming.
 
-首先定义一个烟感服务类，继承自AbstractService类
+Define a smoke detector service class, which is inherited from the **AbstractService** class.
 
 ```
 class SmokeDetectorService(AbstractService)
 ```
 
-定义服务属性，属性和产品模型保持一致。
-*  注意：属性的prop_name需要和模型一致，writeable表示属性是否可写；
-field_name为变量的名字，val为属性的值。
-   
+Define service properties, which must be consistent with those defined in the product model.
+*  The value of **prop_name** must be the same as that of the model. **writeable** indicates whether the property can be written. **field_name** indicates the variable name. **val** indicates the property value.
+
 ```
 smoke_alarm = Property(val=20, field_name="smoke_alarm", prop_name="alarm", writeable=True)
 concentration = Property(val=float(32.0), field_name="concentration", prop_name="smokeConcentration", writeable=False)
@@ -437,37 +437,37 @@ humidity = Property(val=64, field_name="humidity", prop_name="humidity", writeab
 temperature = Property(val=float(36.0), field_name="temperature", prop_name="temperature", writeable=False)
 ```
 
-定义属性的读写方法：
-*  get_xxx方法为读方法，在属性上报和平台主动查询属性时被SDK调用；
-*  set_xxx方法为写方法，在平台修改属性时被SDK调用，如果属性是只读的，则set_xxx方法保留空实现；
+Define the methods for reading and writing properties.
+*  **get_***xxx* is the read method and is called by the SDK when properties are queried by the platform or reported.
+*  **set_***xxx* is the write method and is called by the SDK when properties are modified on the platform. If properties are read-only, leave the **set_***xxx* method not implemented.
 
 ```
-    # get和set接口的命名规则：get_ + 属性的变量名；设置正确，SDK会自动调用这些接口
+    # Naming rules of the **get**/**set** APIs: **get**_*VariableName* or **set**_*VariableName*. If the setting is valid, the SDK automatically calls these APIs.
     def get_humidity(self):
-        # 模拟从传感器读取数据
+        # Simulate the action of reading data from the sensor.
         self.humidity.val = 32
         return self.humidity.val
 
     def set_humidity(self, humidity):
-        # humidity是只读的，不需要实现
+        # You do not need to implement this method for read-only fields.
         pass
 
     def get_temperature(self):
-        # 模拟从传感器读取数据
+        # Simulate the action of reading data from the sensor.
         self.temperature.val = 64
         return self.temperature.val
 
     def set_temperature(self, temperature):
-        # 只读字段不需要实现set接口
+        # You do not need to implement this method for read-only fields.
         pass
 
     def get_concentration(self):
-        # 模拟从传感器读取数据
+        # Simulate the action of reading data from the sensor.
         self.concentration.val = 36
         return self.concentration.val
 
     def set_concentration(self, concentration):
-        # 只读字段不需要实现set接口
+        # You do not need to implement this method for read-only fields.
         pass
 
     def get_smoke_alarm(self):
@@ -480,8 +480,7 @@ temperature = Property(val=float(36.0), field_name="temperature", prop_name="tem
             self._logger.info("alarm is clear by app")
 ```
 
-定义服务的命令：
-命令的输入参数和返回值类型是固定的不能修改，否则会出现运行时的错误。
+Define the service command. The type of input parameters and return values of the command cannot be changed. Otherwise, a runtime error occurs.
 
 ```
     def alarm(self, paras: dict):
@@ -492,8 +491,7 @@ temperature = Property(val=float(36.0), field_name="temperature", prop_name="tem
         return command_rsp
 ```
 
-上面完成了服务的定义（更详细的代码见/iot_device_demo/smoke_detector.py中的SmokeDetectorService类）。
-接下来创建设备，注册烟感服务，然后初始化设备。设备连接成功，烟感服务将启动周期上报属性功能。
+The service is defined. For details about the code, see the **SmokeDetectorService** class in **/iot_device_demo/smoke_detector.py**. Then, create a device, register the smoke detector service, and initialize the device. When the device is connected. The smoke detector service enables scheduled property reporting.
 
 ```
 class SmokeDetector:
@@ -504,40 +502,41 @@ class SmokeDetector:
         self.secret = secret
 
     def start(self):
-        """ 创建设备 """
+        """ Create a device. """
         < create device code here ... >
         
-        """ 添加烟感服务 """
+        """ Add smoke detector service. """
         smoke_detector_service = SmokeDetectorService()
         device.add_service("smokeDetector", smoke_detector_service)
-        """ 设备连接平台 """
+        """ Connect the device to the platform. """
         if device.connect() != 0:
             return
         
-        """ 启动自动周期上报 """
+        """ Enable scheduled property reporting. """
         smoke_detector_service.enable_auto_report(5)
 
-        """ 20s后结束周期上报 """
+        """ End scheduled reporting in 20s. """
         time.sleep(20)
         smoke_detector_service.disable_auto_report()
 ```
 
-若属性上报成功，”在线调试“页面会显示：
+If properties are reported, the following information is displayed on the **Online Debugging** page:
 
-![](./doc/model_1_0.png)
+![MD16](./doc/figure_en/MD16.png)
 
-在”在线调试“页面给设备发送命令，物模型会自动调用SmokeDetectorService类的alarm方法，输出以下结果：
+On the **Online Debugging** page, send a command to the device. The profile automatically calls the **alarm** method of the **SmokeDetectorService** class. The output is as follows:
 
-![](./doc/model_1.png)
+![MD17](./doc/figure_en/MD17.png)
 
-<h1 id="12">OTA升级</h1>
-在/iot_device_demo/ota_detector.py中实现了一个OTA升级的例子，如下面代码所示。
+<h1 id="12">OTA Upgrade</h1>
+
+**/iot_device_demo/ota_detector.py** shows an example of performing OTA upgrade. The code is as follows:
 
 ```
 def run():
    < create device code here ... >
 
-    """ OTA监听器设置 """
+    """ OTA listener settings """
     ota_service: OTAService = device.get_ota_service()
     ota_service_listener = OTASampleListener(ota_service)
     ota_service.set_ota_listener(ota_service_listener)
@@ -546,25 +545,25 @@ def run():
         return
 ```
 
-OTAService服务是系统本身定义的服务，可以通过device的get_ota_service方法获取。
-用户需要实现的是OTA监听器，/iot_device_demo/ota_sample.py中的OTASampleListener类是一个监听器实现的例子。
-OTASampleListener类继承OTAListener类，必须要实现两个方法：
-*  on_query_version  接收查询版本通知。需要实现此方法来将当前的版本号返回给平台。
-*  on_receive_package_info    接收新版本通知。需要实现此方法来下载包并安装升级。
+**OTAService** is a service defined by the system and can be obtained using the **get_ota_service** method.
+You need to implement the OTA listener. The **OTASampleListener** class in **/iot_device_demo/ota_sample.py** is an example of listener implementation. The **OTASampleListener** class inherits the **OTAListener** class and must implement the following methods:
+*  **on_query_version**: receives a version query notification. This method needs to be implemented to return the current version number to the platform.
+*  **on_receive_package_info**: receives the new version notification. This method needs to be implemented to download and install a package for upgrade.
 
-<h3>如何进行OTA升级</h3>
-1. 固件升级。参考[固件升级](https://support.huaweicloud.com/usermanual-iothub/iot_01_0027.html)
+<h3>Performing OTA Upgrade</h3>
+1. For details about how to upgrade firmware, see [Firmware Upgrades](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0027.html).
 
-2. 软件升级。参考[软件升级](https://support.huaweicloud.com/usermanual-iothub/iot_01_0047.html)
+2. For details about how to upgrade software, see [Software Upgrades](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0047.html).
 
-<h1 id="13">文件上传/下载</h1>
-在/iot_device_demo/file_sample.py中实现了一个文件上传/下载的例子。
+<h1 id="13">File Upload/Download</h1>
+
+**/iot_device_demo/file_sample.py** shows an example of uploading and downloading files.
 
 ```
 def run():
     < create device code here ... >
 
-    """ 设置文件管理监听器 """
+    """ Set the file management listener. """
     file_manager: FileManagerService = device.get_file_manager_service()
     file_manager_listener = FileManagerSampleListener()
     file_manager.set_listener(file_manager_listener)
@@ -573,47 +572,45 @@ def run():
         logger.error('init failed')
         return
 
-    """ 文件上传 """
+    """ File upload """
     upload_file_path = os.path.dirname(__file__) + r'/download/upload_test.txt'
     file_name = "upload_test.txt"
     file_manager.get_upload_url(upload_file_path=upload_file_path, file_name=file_name)
 
-    # 10s后将刚刚上传的upload_test.txt下载下来，保存到download.txt
+    # After 10 seconds, download the uploaded **upload_test.txt** file and save it to **download.txt**.
     time.sleep(10)
 
-    """ 文件下载 """
+    """ File download """
     download_file_path = os.path.dirname(__file__) + r'/download/download.txt'
     file_manager.get_download_url(download_file_path=download_file_path, file_name=file_name)
 ```
 
-FileManagerService服务是系统本身定义的服务，可以通过device的get_file_manager_service方法获取。
-用户需要实现的是FileManagerService监听器，
-/iot_device_demo/file_sample.py中的FileManagerSampleListener类是一个监听器实现的例子。
-FileManagerSampleListener类继承FileManagerListener类，必须要实现两个方法：
-*  on_upload_url     接收平台下发的文件上传url。
-*  on_download_url   接收平台下发的文件下载url。
+**FileManagerService** is a service defined by the system and can be obtained using the **get_file_manager_service** method of the device. You need to implement the **FileManagerService** listener. The **FileManagerSampleListener** class in **/iot_device_demo/file_sample.py** is an example of listener implementation. The **FileManagerSampleListener** class inherits the **FileManagerListener** class and must implement the following methods:
+*  **on_upload_url**: receives the file upload URL delivered by the platform.
+*  **on_download_url**: receives the file download URL delivered by the platform.
 
-文件上传/下载流程参考[文件上传](https://support.huaweicloud.com/usermanual-iothub/iot_01_0033.html)
+For details about the file upload/download process, see [File Uploads](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0033.html).
 
-* 在控制台中配置OBS存储。
-   
-   ![](./doc/obs_config.png)
+* Configure OBS storage on the console.
 
-* 预置好上传文件。上面例子的待上传文件为/iot_device_demo/download/upload_test.txt。
-   文件下载部分将已上传的upload_test.txt下载下来保存到/iot_device_demo/download/download.txt。
+   ![MD18](./doc/figure_en/MD18.png)
 
-* 执行上面例子可到OBS上看到存储结果。
-   
-   ![](./doc/obs_object.png)
+* Preset the file to be uploaded. In the preceding example, the file to be uploaded is **/iot_device_demo/download/upload_test.txt**.
+   Download the uploaded **upload_test.txt** file to **/iot_device_demo/download/download.txt**.
 
-<h1 id="14">设备时间同步</h1>
-在/iot_device_demo/ntp_sample.py中实现了一个设备时间同步的例子。
+* Run the preceding commands to view the storage result in OBS.
+
+   ![MD19](./doc/figure_en/MD19.png)
+
+<h1 id="14">Device Time Synchronization</h1>
+
+**/iot_device_demo/ntp_sample.py** shows an example of synchronizing device time.
 
 ```
 def run():
    < create device code here ... >
 
-    """ 设置时间同步服务 """
+    """ Set the time synchronization service. """
     time_sync_service: TimeSyncService = device.get_time_sync_service()
     time_sync_listener = TimeSyncSampleListener()
     time_sync_service.set_listener(time_sync_listener)
@@ -622,71 +619,65 @@ def run():
         logger.error('init failed')
         return
 
-    # 请求时间同步
+    # Request for time synchronization
     time_sync_service.request_time_sync()
 ```
 
-TimeSyncService服务是系统本身定义的服务，可以通过device的get_time_sync_service方法获取。
-用户需要实现的是TimeSyncListener监听器，
-/iot_device_demo/ntp_sample.py中的TimeSyncSampleListener类是一个监听器实现的例子。
-TimeSyncSampleListener类继承TimeSyncListener类，必须要实现一个方法：
-*  on_time_sync_response   时间同步响应。假设设备收到的设备侧时间为device_recv_time，则设备计算自己的准确时间为：
+**TimeSyncService** is a service defined by the system and can be obtained using the **get_time_sync_service** method. You need to implement the **TimeSyncListener** listener. The **TimeSyncSampleListener** class in **/iot_device_demo/ntp_sample.py** is an example of listener implementation. The **TimeSyncSampleListener** class inherits the **TimeSyncListener** class and must implement the following method:
+*  **on_time_sync_response**: time synchronization response. Assume that the time when the device receives the response is **device_recv_time**. The device calculates the accurate time as follows:
         (server_recv_time + server_send_time + device_recv_time - device_send_time) / 2
 
-<h1 id="15">网关与子设备管理</h1>
+<h1 id="15">Gateway and Child Device Management</h1>
 
-此功能参考[网关与子设备](https://support.huaweicloud.com/usermanual-iothub/iot_01_0052.html)
+For details, see [Gateways and Child Devices](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0052.html).
 
-网关与子设备管理的demo代码在/iot_gateway_demo下。此demo演示如何使用网关来实现TCP协议设备接入。
-网关和平台只建立一个MQTT连接，使用网关的身份和平台进行通讯。
+The demo code for gateway and child device management is stored in **/iot_gateway_demo**. This demo demonstrates how to use a gateway to connect TCP devices to the platform. Only an MQTT connection is established between the gateway and platform. Devices communicate with the platform using the gateway information.
 
-此demo有两个可运行的.py文件，
-分别是/iot_gateway_demo/string_tcp_server.py和/iot_gateway_demo/tcp_device.py，
-分别是网关和tcp设备的代码。
+This demo contains two executable .py files:
+**/iot_gateway_demo/string_tcp_server.py** (gateway-related code) and **/iot_gateway_demo/tcp_device.py** (TCP device-related code).
 
-此demo可以演示：
-1. 网关同步子设备列表。网关设备不在线时，平台无法将子设备新增和删除的信息及时通知到网关设备。
-   网关设备离线再上线时，平台会通知新增/删除的子设备信息。
-2. 网关更新子设备状态。网关通知平台子设备的状态为”ONLINE“。
-3. 子设备通过网关上报消息到平台。
-4. 平台给子设备下发命令。
-5. 网关新增/删除子设备请求
 
-<h3>如何运行</h3>
-先运行string_tcp_server.py（需要填写网关的设备Id、设备密钥和产品Id），网关会与平台建立连接，并同步子设备的列表。
+This demo demonstrates that:
+1. The gateway synchronizes the child device list. When the gateway is offline, the platform cannot notify the gateway of child device addition and deletion in a timely manner.
+   When the gateway goes online, the platform notifies the gateway of child device addition and deletion.
+2. The gateway updates the child device status. The gateway notifies the platform that the child device status is "ONLINE".
+3. The child device reports a message to IoT platform through the gateway.
+4. The platform delivers a command to the child device.
+5. The gateway sends a request for adding/deleting child devices.
 
-然后运行tcp_device.py（需要填写子设备Id），在运行界面输入任意字符串，例如”go online“。
-这是子设备发给网关的第一条消息，如果此子设备已在平台上进行注册，网关会通知平台将子设备的状态设为”ONLINE“；
-如果此子设备并没有在平台上进行注册，网关会将此子设备注册到平台，下面是这种情形的演示。
+<h3>Procedure</h3>
 
-首先运行string_tcp_server.py，在tcp_device.py中填写子设备Id后（此设备Id没有在平台上注册），运行tcp_device.py，在运行界面输入一个字符串，例如：
+Run **string_tcp_server.py**. The device ID, device secret, and product ID of the gateway need to be entered. The gateway establishes a connection with the platform and synchronizes the child device list.
 
-![](./doc/gateway_1.png)
+Run **tcp_device.py**. The child device ID needs to be entered. Enter any string in the CLI, for example, **go online**. This is the first message sent by the child device to the gateway. If the child device has been registered with the platform, the gateway instructs the platform to set the child device status to online.
+If the child device is not registered with the platform, the gateway registers the child device with the platform, as shown in the following example.
 
-此时网关会向平台发起新增子设备的请求，在平台上可以看到新创建的子设备：
+Run **string_tcp_server.py**, enter the child device ID (not registered on the platform) in **tcp_device.py**, run **tcp_device.py**, and enter a string in the CLI.
 
-![](./doc/gateway_2.png)
+![MD20](./doc/figure_en/MD20.png)
 
-确认子设备已经创建成功后，在运行界面输入一个字符串，网关将通知平台更新子设备状态为ONLINE，例如：
+The gateway sends a request to the platform to add a child device. The created child device is displayed on the platform.
 
-![](./doc/gateway_3.png)
+![MD21](./doc/figure_en/MD21.png)After the child device is created, enter a string in the CLI. The gateway instructs the platform to update the child device status to "ONLINE".
 
-![](./doc/gateway_4.png)
+![MD22](./doc/figure_en/MD22.png)
 
-确认子设备在平台上的状态为在线后，在运行界面输入一个字符串，网关将上报给平台，例如：
+![MD23](./doc/figure_en/MD23.png)
 
-![](./doc/gateway_5.png)
+After the child device status changes to online on the platform, enter a string in the CLI. The gateway reports the message to the platform.
 
-如果在运行界面输入gtwdel，网关将向平台发送删除此子设备的请求：
+![MD24](./doc/figure_en/MD24.png)
 
-![](./doc/gateway_6.png)
+If you enter **gtwdel**, the gateway sends a request to the platform to delete the child device.
 
-可以从平台看到此子设备被删除了。
+![MD25](./doc/figure_en/MD25.png)
 
-<h1 id="16">设备信息上报</h1>
-在/iot_device_demo/report_device_info_sample.py中实现了一个设备信息上报的例子。
-设备信息包括固件版本、软件版本以及SDK版本。
-需要注意的是，在设备与平台首次建链的时候，SDK会自动上报一次只包含SDK版本号的设备信息。
+The child device is deleted from the platform.
+
+<h1 id="16">Device Information Reporting</h1>
+
+**/iot_device_demo/report_device_info_sample.py** shows an example of reporting device information.
+Device information includes the firmware version, software version, and SDK version. Note that when a device establishes a connection with the platform for the first time, the SDK automatically reports the device information that contains only the SDK version.
 
 ```
 def run():
@@ -696,17 +687,18 @@ def run():
         logger.error('init failed')
         return
 
-    """ 上报设备信息 """
+    """ Report device information. """
     device_info = DeviceBaseInfo()
     device_info.fw_version = "v1.0"
     device_info.sw_version = "v1.0"
     device.get_client().report_device_info(device_info)
 ```
 
-<h1 id="17">设备日志上报说明</h1>
-在下面两种情况下，SDK会自动上报设备的日志。其余情况、功能的日志需要用户自行上报。
+<h1 id="17">Device Log Reporting</h1>
 
-1. 设备与平台首次建链成功时，SDK会自动上报一条设备日志，例如：
+The SDK automatically reports device logs in either of the following scenarios. In other scenarios, you need to report logs manually.
+
+1. When a device establishes a connection with the platform for the first time, the SDK automatically reports the device log. Example:
 
     ```
     {
@@ -725,9 +717,9 @@ def run():
     }
     ```
 
-2. 设备与平台断链重连后，SDK会自动上报两条设备日志，
-   一条记录了设备断链重连成功的时间戳，一条记录了设备断链的时间戳。格式与上面的一致。
+2. After the device reconnects to the platform, the SDK automatically reports two device logs.
+   One records the timestamp when the device reconnects to the platform, and the other records the timestamp when the device is disconnected from the platform. The log format is the same as that in the preceding example.
 
-<h1 id="18">开源协议</h1>
+<h1 id="18">Open Source Protocols</h1>
 
-- 遵循BSD-3开源许可协议
+- In compliance with the BSD-3 open source license agreement
