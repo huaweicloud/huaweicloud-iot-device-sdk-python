@@ -118,7 +118,7 @@ iot_gateway_demo：网关与子设备管理demo演示代码
  
    ![](./doc/upload_profile_2.png)
 
-* 产品创建成功后，单击“详情”进入产品详情，在功能定义页面，单击“上传模型文件”，上传烟感产品模型[smokeDetector](https://support.huaweicloud.com/devg-iothub/resource/smokeDetector_cb097d20d77b4240adf1f33d36b3c278_smokeDetector.zip) 。
+* 产品创建成功后，单击“详情”进入产品详情，在功能定义页面，单击“上传模型文件”，上传烟感产品模型[smokeDetector](https://iot-developer.obs.cn-north-4.myhuaweicloud.com/smokeDetector.zip) 。
 生成的产品模型如下图所示。
 
    ![](./doc/upload_profile_2_1.png)
