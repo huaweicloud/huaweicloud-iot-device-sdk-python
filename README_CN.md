@@ -41,17 +41,19 @@
 
 - [开源协议](#18)
 
-- [接口文档]()
+- [接口文档](./IoT-Device-SDK-Python-API文档.pdf)
 
 - [更多文档](https://support.huaweicloud.com/devg-iothub/iot_02_0178.html)
 
 <h1 id="0">SDK版本</h1>
 
-SDK版本：v1.0.0
-
-发布日期：2023-01-01
+|版本|变更类型|说明|
+|:-|:-|:-|
+|1.1.2|新增功能|增加micropython支持和对应demo，从OBS下载OTA，以及说明文档|
+|1.1.1|新增功能|提供对接华为云IoT物联网平台能力，方便用户实现安全接入、设备管理、数据采集、命令下发等业务场景|
 
 <h1 id="1">前言</h1>
+
 iot-device-sdk-python（以下简称SDK）提供设备接入华为云IoT物联网平台的Python版本的SDK，提供设备和平台之间通讯能力，
 以及设备服务、网关服务、OTA等高级服务，并且针对各种场景提供了丰富的demo代码。
 IoT设备开发者使用SDK可以大大简化开发复杂度，快速的接入平台。
@@ -104,42 +106,43 @@ iot_gateway_demo：网关与子设备管理demo演示代码
 
 * 查看平台接入地址。
 
-   ![](./doc/upload_profile_0.png)
+   ![](./doc/figure_cn/upload_profile_0.png)
 
 * 查看MQTT设备接入地址，保存该地址。
 
-   ![](./doc/upload_profile_1.png)
+   ![](./doc/figure_cn/upload_profile_1.png)
 
-* 在设备接入控制台选择“产品”，单击右上角的“创建产品”，在弹出的页面中，填写“产品名称”、“协议类型”、“数据格式”、“厂商名称”、“所属行业”、“设备类型”等信息，然后点击右下角“立即创建”。
+* 在设备接入控制台选择“产品”，单击右上角的”创建产品”，在弹出的页面中，填写“产品名称“、“协议类型”、“数据格式”、“厂商名称”、“所属行业”、“设备类型”等信息，然后点击右下角“立即创建”。
 
    - 协议类型选择“MQTT”；
 
    - 数据格式选择“JSON”。
  
-   ![](./doc/upload_profile_2.png)
+   ![](./doc/figure_cn/upload_profile_2.png)
 
 * 产品创建成功后，单击“详情”进入产品详情，在功能定义页面，单击“上传模型文件”，上传烟感产品模型[smokeDetector](https://iot-developer.obs.cn-north-4.myhuaweicloud.com/smokeDetector.zip) 。
-生成的产品模型如下图所示。
+    生成的产品模型如下图所示。
 
-   ![](./doc/upload_profile_2_1.png)
+    ![](./doc/figure_cn/upload_profile_2_1.png)
 
-* 在左侧导航栏，选择“ 设备 > 所有设备”，单击右上角“注册设备”，在弹出的页面中，填写注册设备参数，然后单击“确定”。
+* 在左侧导航栏，选择“设备 > 所有设备”，单击右上角“注册设备”，在弹出的页面中，填写注册设备参数，然后单击“确定”。
 
-   ![](./doc/upload_profile_3.png)
+   ![](./doc/figure_cn/upload_profile_3.png)
 
 * 设备注册成功后保存设备标识码、设备ID、密钥。
 
-<h1 id="5">在线调试工具</h1>>
-在控制台左侧导航栏，选择”监控运维 > 在线调试“可以进入在线调试页面。
+<h1 id="5">在线调试工具</h1>
+
+在控制台左侧导航栏，选择“监控运维 > 在线调试”可以进入在线调试页面。
 页面中有命令下发、消息跟踪功能。
 
-*  点击页面右上角的”选择设备“选择已注册的设备
+*  点击页面右上角的“选择设备”选择已注册的设备
 
-*  点击”IoT平台“会显示消息跟踪
+*  点击“IoT平台”会显示消息跟踪
 
-*  点击页面右下角的”发送“可以发送命令给设备
+*  点击页面右下角的“发送”可以发送命令给设备
 
-![](./doc/debug_page.png)
+![](./doc/figure_cn/debug_page.png)
 
 <h1 id="6">设备初始化</h1>
 
@@ -197,13 +200,13 @@ iot_gateway_demo：网关与子设备管理demo演示代码
 
 *  关于IotDevice类的详细信息参见/iot_device_sdk_python/iot_device.py
 
-若连接成功，在线调试页面的”消息跟踪“会显示：
+若连接成功，在线调试页面的“消息跟踪”会显示：
 
-![](./doc/init_1.png)
+![](./doc/figure_cn/init_1.png)
 
 运行日志为：
 
-![](./doc/init_2.png)
+![](./doc/figure_cn/init_2.png)
 
 <h1 id="7">命令下发</h1>
 
@@ -257,13 +260,13 @@ def run():
         time.sleep(5)
 ```
 
-执行run函数，在”在线调试“页面给设备下发命令，代码会产生以下输出：
+执行run函数，在“在线调试”页面给设备下发命令，代码会产生以下输出：
 
-![](doc/command_1.png)
+![](./doc/figure_cn/command_1.png)
 
-同时，设备对命令的响应可以在”在线调试“的”消息跟踪“处找到。
+同时，设备对命令的响应可以在“在线调试”的“消息跟踪”处找到。
 
-![](./doc/command_2.png)
+![](./doc/figure_cn/command_2.png)
 
 <h1 id="8">平台消息下发/设备消息上报</h1>
 
@@ -295,9 +298,9 @@ def run():
         time.sleep(5)
 ```
 
-上面代码中的report_device_message方法将消息上报给平台，若发送成功，在”在线调试“页面可以看到：
+上面代码中的report_device_message方法将消息上报给平台，若发送成功，在“在线调试”页面可以看到：
 
-![](./doc/message_1.png)
+![](./doc/figure_cn/message_1.png)
 
 <h1 id="9">属性上报/设置</h1>
 
@@ -327,13 +330,13 @@ def run():
    ```
 
 上面代码将周期性地上报alarm、smokeConcentration、temperature、humidity这四个属性。
-若上报成功，”在线调试“页面会显示：
+若上报成功，“在线调试”页面会显示：
 
-![](./doc/properties_1.png)
+![](./doc/figure_cn/properties_1.png)
 
-在左侧导航栏中选择”设备 > 所有设备“，选择注册的设备进行查看，在”设备影子“处可以看到刚刚上报的属性值。
+在左侧导航栏中选择“设备 > 所有设备”，选择注册的设备进行查看，在“设备影子”处可以看到刚刚上报的属性值。
 
-![](./doc/properties_2.png)
+![](./doc/figure_cn/properties_2.png)
 
 <h3>平台设置设备属性</h3>
 若将PropertySampleListener的实例设置为属性监听器，即：
@@ -377,14 +380,14 @@ def run():
         return
 ```
 
-在”设备影子“处，点击”属性配置“可以设置属性的期望值。
+在“设备影子”处，点击“属性配置”可以设置属性的期望值。
 若设置的期望值与设备的上报值不一样，在设备上线时，平台会自动把期望值发送给设备。（即平台设置设备属性）
 
-![](./doc/properties_3.png)
+![](./doc/figure_cn/properties_3.png)
 
 运行上面的run函数，得到：
 
-![](./doc/properties_4.png)
+![](./doc/figure_cn/properties_4.png)
 
 <h1 id="10">设备影子</h1>
 用于设备向平台获取设备影子数据。设备可以获取到平台设备影子数据，以此来同步设备属性值，从而完成设备属性值的修改。
@@ -416,11 +419,12 @@ def run():
    ```
 
 <h1 id="11">面向物模型编程</h1>
+
 面向物模型编程指的是，基于SDK提供的物模型抽象能力，设备代码只需要按照物模型定义设备服务，SDK就能自动的和平台通讯，
 完成属性的同步和命令的调用。相比直接调用客户端接口和平台通讯，面向物模型编程简化了设备侧代码的复杂度，
 让设备代码只需要关注业务，而不用关注和平台的通讯过程。
 
-/iot_device_demo/smoke_detector.py是一个面向物模型编程的例子。
+**/iot_device_demo/smoke_detector.py**是一个面向物模型编程的例子。
 
 首先定义一个烟感服务类，继承自AbstractService类
 
@@ -430,8 +434,9 @@ class SmokeDetectorService(AbstractService)
 
 定义服务属性，属性和产品模型保持一致。
 *  注意：属性的prop_name需要和模型一致，writeable表示属性是否可写；
+
 field_name为变量的名字，val为属性的值。
-   
+
 ```
 smoke_alarm = Property(val=20, field_name="smoke_alarm", prop_name="alarm", writeable=True)
 concentration = Property(val=float(32.0), field_name="concentration", prop_name="smokeConcentration", writeable=False)
@@ -524,16 +529,17 @@ class SmokeDetector:
         smoke_detector_service.disable_auto_report()
 ```
 
-若属性上报成功，”在线调试“页面会显示：
+若属性上报成功，“在线调试”页面会显示：
 
-![](./doc/model_1_0.png)
+![](./doc/figure_cn/model_1_0.png)
 
-在”在线调试“页面给设备发送命令，物模型会自动调用SmokeDetectorService类的alarm方法，输出以下结果：
+在“在线调试”页面给设备发送命令，物模型会自动调用SmokeDetectorService类的alarm方法，输出以下结果：
 
-![](./doc/model_1.png)
+![](./doc/figure_cn/model_1.png)
 
 <h1 id="12">OTA升级</h1>
-在/iot_device_demo/ota_detector.py中实现了一个OTA升级的例子，如下面代码所示。
+
+在/iot_device_demo/ota_sample.py中实现了一个OTA升级的例子，如下面代码所示。
 
 ```
 def run():
@@ -555,11 +561,13 @@ OTASampleListener类继承OTAListener类，必须要实现两个方法：
 *  on_receive_package_info    接收新版本通知。需要实现此方法来下载包并安装升级。
 
 <h3>如何进行OTA升级</h3>
+
 1. 固件升级。参考[固件升级](https://support.huaweicloud.com/usermanual-iothub/iot_01_0027.html)
 
 2. 软件升级。参考[软件升级](https://support.huaweicloud.com/usermanual-iothub/iot_01_0047.html)
 
 <h1 id="13">文件上传/下载</h1>
+
 在/iot_device_demo/file_sample.py中实现了一个文件上传/下载的例子。
 
 ```
@@ -599,16 +607,17 @@ FileManagerSampleListener类继承FileManagerListener类，必须要实现两个
 
 * 在控制台中配置OBS存储。
    
-   ![](./doc/obs_config.png)
+   ![](./doc/figure_cn/obs_config.png)
 
 * 预置好上传文件。上面例子的待上传文件为/iot_device_demo/download/upload_test.txt。
    文件下载部分将已上传的upload_test.txt下载下来保存到/iot_device_demo/download/download.txt。
 
 * 执行上面例子可到OBS上看到存储结果。
    
-   ![](./doc/obs_object.png)
+   ![](./doc/figure_cn/obs_object.png)
 
 <h1 id="14">设备时间同步</h1>
+
 在/iot_device_demo/ntp_sample.py中实现了一个设备时间同步的例子。
 
 ```
@@ -649,43 +658,45 @@ TimeSyncSampleListener类继承TimeSyncListener类，必须要实现一个方法
 此demo可以演示：
 1. 网关同步子设备列表。网关设备不在线时，平台无法将子设备新增和删除的信息及时通知到网关设备。
    网关设备离线再上线时，平台会通知新增/删除的子设备信息。
-2. 网关更新子设备状态。网关通知平台子设备的状态为”ONLINE“。
+2. 网关更新子设备状态。网关通知平台子设备的状态为“ONLINE“。
 3. 子设备通过网关上报消息到平台。
 4. 平台给子设备下发命令。
 5. 网关新增/删除子设备请求
 
 <h3>如何运行</h3>
+
 先运行string_tcp_server.py（需要填写网关的设备Id、设备密钥和产品Id），网关会与平台建立连接，并同步子设备的列表。
 
-然后运行tcp_device.py（需要填写子设备Id），在运行界面输入任意字符串，例如”go online“。
-这是子设备发给网关的第一条消息，如果此子设备已在平台上进行注册，网关会通知平台将子设备的状态设为”ONLINE“；
+然后运行tcp_device.py（需要填写子设备Id），在运行界面输入任意字符串，例如“go online“。
+这是子设备发给网关的第一条消息，如果此子设备已在平台上进行注册，网关会通知平台将子设备的状态设为“ONLINE；
 如果此子设备并没有在平台上进行注册，网关会将此子设备注册到平台，下面是这种情形的演示。
 
 首先运行string_tcp_server.py，在tcp_device.py中填写子设备Id后（此设备Id没有在平台上注册），运行tcp_device.py，在运行界面输入一个字符串，例如：
 
-![](./doc/gateway_1.png)
+![](./doc/figure_cn/gateway_1.png)
 
 此时网关会向平台发起新增子设备的请求，在平台上可以看到新创建的子设备：
 
-![](./doc/gateway_2.png)
+![](./doc/figure_cn/gateway_2.png)
 
 确认子设备已经创建成功后，在运行界面输入一个字符串，网关将通知平台更新子设备状态为ONLINE，例如：
 
-![](./doc/gateway_3.png)
+![](./doc/figure_cn/gateway_3.png)
 
-![](./doc/gateway_4.png)
+![](./doc/figure_cn/gateway_4.png)
 
 确认子设备在平台上的状态为在线后，在运行界面输入一个字符串，网关将上报给平台，例如：
 
-![](./doc/gateway_5.png)
+![](./doc/figure_cn/gateway_5.png)
 
 如果在运行界面输入gtwdel，网关将向平台发送删除此子设备的请求：
 
-![](./doc/gateway_6.png)
+![](./doc/figure_cn/gateway_6.png)
 
 可以从平台看到此子设备被删除了。
 
 <h1 id="16">设备信息上报</h1>
+
 在/iot_device_demo/report_device_info_sample.py中实现了一个设备信息上报的例子。
 设备信息包括固件版本、软件版本以及SDK版本。
 需要注意的是，在设备与平台首次建链的时候，SDK会自动上报一次只包含SDK版本号的设备信息。
@@ -706,6 +717,7 @@ def run():
 ```
 
 <h1 id="17">设备日志上报说明</h1>
+
 在下面两种情况下，SDK会自动上报设备的日志。其余情况、功能的日志需要用户自行上报。
 
 1. 设备与平台首次建链成功时，SDK会自动上报一条设备日志，例如：

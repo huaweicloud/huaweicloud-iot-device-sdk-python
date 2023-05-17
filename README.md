@@ -47,9 +47,11 @@
 
 <h1 id="0">SDK Version</h1>
 
-SDK version: v1.0.0
+| version |change type|explanation|
+|:--------|:---|:---|
+| 1.1.2   |add new feature|add support for micropython and corresponding demo, downlonding OTA from OBS, and readme|
+| 1.1.1   |add new feature|provide ability to access Huawei IoT platform, enable users to implement business scenarios such as secure access, device management, data collection, and command delivery|
 
-Release date: 2023-01-01
 
 <h1 id="1">About This Document</h1>
 
@@ -530,7 +532,7 @@ On the **Online Debugging** page, send a command to the device. The profile auto
 
 <h1 id="12">OTA Upgrade</h1>
 
-**/iot_device_demo/ota_detector.py** shows an example of performing OTA upgrade. The code is as follows:
+**/iot_device_demo/ota_sample.py** shows an example of performing OTA upgrade. The code is as follows:
 
 ```
 def run():
@@ -551,6 +553,7 @@ You need to implement the OTA listener. The **OTASampleListener** class in **/io
 *  **on_receive_package_info**: receives the new version notification. This method needs to be implemented to download and install a package for upgrade.
 
 <h3>Performing OTA Upgrade</h3>
+
 1. For details about how to upgrade firmware, see [Firmware Upgrades](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0027.html).
 
 2. For details about how to upgrade software, see [Software Upgrades](https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0047.html).

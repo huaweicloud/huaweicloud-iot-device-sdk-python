@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,8 +32,9 @@ from iot_device_sdk_python.ota.ota_listener import OTAListener
 from iot_device_sdk_python.iot_device import IotDevice
 from iot_device_sdk_python.ota.ota_service import OTAService
 from iot_device_sdk_python.ota.ota_package_info import OTAPackageInfo
+from iot_device_sdk_python.ota.ota_package_info_v2 import OTAPackageInfoV2
 from iot_device_sdk_python.utils.iot_util import sha256_hash_from_file
-
+from typing import Union
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(threadName)s - %(filename)s[%(funcName)s] - %(levelname)s: %(message)s")
@@ -57,7 +58,7 @@ class OTASampleListener(OTAListener):
         self._logger.info("OTASampleListener on_query_version")
         self.ota_service.report_version(self.fw_version, self.sw_version)
 
-    def on_receive_package_info(self, pkg: OTAPackageInfo):
+    def on_receive_package_info(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2]):
         """
         接收新版本通知
         :param pkg:     新版本包信息
@@ -68,10 +69,7 @@ class OTASampleListener(OTAListener):
         # 下载包并升级
         self.download_package(pkg)
 
-    def on_receive_package(self, pkg: OTAPackage):
-        pass
-
-    def pre_check(self, pkg: OTAPackageInfo):
+    def pre_check(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2]):
         """
         对新版本包信息进行检查
         :param pkg:     新版本包信息
@@ -80,7 +78,7 @@ class OTASampleListener(OTAListener):
         # TODO 对版本号、剩余空间、剩余电量、信号质量等进行检查、如果不允许升级，上报OTAService中定义的错误码或者自定义错误码，返回-1
         return 0
 
-    def on_upgrade_success(self, pkg: OTAPackageInfo, sign: str):
+    def on_upgrade_success(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2], sign: str):
         self._logger.info("download package success")
         # 校验下载的升级包
         if self.check_package(pkg, sign) != 0:
@@ -98,14 +96,14 @@ class OTASampleListener(OTAListener):
     def on_upgrade_failure(self):
         self._logger.error("download package failed")
 
-    def check_package(self, pkg: OTAPackageInfo, sign: str):
+    def check_package(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2], sign: str):
         """
         校验升级包
         :param pkg:     新版本包信息
         :param sign:    str
         :return:    0表示校验成功；非0表示校验失败
         """
-        if sign != pkg.sign:
+        if isinstance(pkg, OTAPackageInfo) and sign != pkg.sign:
             self._logger.error(
                 "check package fail: current file sha256 %s , target file sha256 %s" % (sign, pkg.sign))
             return -1
@@ -120,7 +118,7 @@ class OTASampleListener(OTAListener):
         # TODO 安装升级包，用户实现
         return 0
 
-    def download_package(self, pkg: OTAPackageInfo):
+    def download_package(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2]):
         """
         下载包，这里的例子是下载一个txt文件
         # TODO 下载升级包
@@ -128,7 +126,11 @@ class OTASampleListener(OTAListener):
         path = os.path.dirname(os.path.realpath("__file__")) + r'/download'
         if not os.path.exists(path):  # 看是否有该文件夹，没有则创建文件夹
             os.makedirs(path)
-        headers = {"Authorization": "Bearer " + pkg.access_token}
+
+        headers = {}
+        if isinstance(pkg, OTAPackageInfo):
+            headers = {"Authorization": "Bearer " + pkg.access_token}
+
         response = requests.get(pkg.url, headers=headers, verify=False, stream=True)
 
         chunk_size = 1024  # 每次下载的数据大小

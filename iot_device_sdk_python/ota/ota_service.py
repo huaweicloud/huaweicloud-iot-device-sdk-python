@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -23,6 +23,7 @@ from iot_device_sdk_python.transport.action_listener import ActionListener
 from iot_device_sdk_python.utils.iot_util import get_event_time
 from iot_device_sdk_python.ota.ota_listener import OTAListener
 from iot_device_sdk_python.ota.ota_package_info import OTAPackageInfo
+from iot_device_sdk_python.ota.ota_package_info_v2 import OTAPackageInfoV2
 from iot_device_sdk_python.service.abstract_service import AbstractService
 
 
@@ -80,6 +81,13 @@ class OTAService(AbstractService):
             # 版本升级
             pkg: dict = device_event.paras
             ota_pkg = OTAPackageInfo()
+            ota_pkg.convert_from_dict(pkg)
+            # 因为版本升级需要下载包，所以要在另一个线程中调用one_new_package方法
+            threading.Thread(target=self._ota_listener.on_receive_package_info(ota_pkg)).start()
+        elif device_event.event_type == "firmware_upgrade_v2" or device_event.event_type == "software_upgrade_v2":
+            # 版本升级
+            pkg: dict = device_event.paras
+            ota_pkg = OTAPackageInfoV2()
             ota_pkg.convert_from_dict(pkg)
             # 因为版本升级需要下载包，所以要在另一个线程中调用one_new_package方法
             threading.Thread(target=self._ota_listener.on_receive_package_info(ota_pkg)).start()
