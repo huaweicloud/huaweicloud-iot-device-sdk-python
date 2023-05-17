@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,7 +17,8 @@ from __future__ import absolute_import
 from abc import abstractmethod, ABCMeta
 
 from iot_device_sdk_python.ota.ota_package_info import OTAPackageInfo
-
+from iot_device_sdk_python.ota.ota_package_info_v2 import OTAPackageInfoV2
+from typing import Union
 
 class OTAListener(metaclass=ABCMeta):
     """
@@ -31,7 +32,7 @@ class OTAListener(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def on_receive_package_info(self, pkg: OTAPackageInfo):
+    def on_receive_package_info(self, pkg: Union[OTAPackageInfo, OTAPackageInfoV2]):
         """
         接收版本包信息，下载包并安装
 
