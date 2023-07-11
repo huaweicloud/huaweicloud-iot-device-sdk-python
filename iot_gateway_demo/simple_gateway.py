@@ -16,13 +16,10 @@
 import asyncio
 import logging
 import traceback
-from typing import Optional
 
 from tornado.iostream import IOStream
 
 from iot_device_sdk_python.client.client_conf import ClientConf
-from iot_device_sdk_python.client.connect_auth_info import ConnectAuthInfo
-from iot_device_sdk_python.client.mqtt_connect_conf import MqttConnectConf
 from iot_device_sdk_python.client.request.command import Command
 from iot_device_sdk_python.client.request.command_response import CommandRsp
 from iot_device_sdk_python.client.request.device_message import DeviceMessage

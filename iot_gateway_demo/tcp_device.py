@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -31,7 +31,7 @@ class TcpDevice:
         self._host = host
         self._port = port
         self.stream: Optional[IOStream] = None
-        self._device_id = "< Your Sub DeviceId >"    # 子设备id，由用户填写
+        self._device_id = "you sud device id"    # 子设备id，由用户填写, 在此示例中必须在中间包含一个下划线，如abc_efg
 
     @gen.coroutine
     def start(self):

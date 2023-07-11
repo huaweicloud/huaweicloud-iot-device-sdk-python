@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -43,8 +43,10 @@ from iot_device_sdk_python.client.listener.command_listener import CommandListen
 from iot_device_sdk_python.client.listener.device_message_listener import DeviceMessageListener
 from iot_device_sdk_python.client.listener.device_shadow_listener import DeviceShadowListener
 from iot_device_sdk_python.client.listener.property_listener import PropertyListener
+from iot_device_sdk_python.client.listener.raw_device_message_listener import RawDeviceMessageListener
 from iot_device_sdk_python.client.mqtt_connect_conf import MqttConnectConf
 from iot_device_sdk_python.client.request.device_message import DeviceMessage
+from iot_device_sdk_python.client.request.raw_device_message import RawDeviceMessage
 from iot_device_sdk_python.client.request.shadow_data import ShadowData
 from iot_device_sdk_python.transport.mqtt.mqtt_connection import MqttConnection
 from iot_device_sdk_python.client.request.device_event import DeviceEvent
@@ -98,6 +100,8 @@ class DeviceClient(RawMessageListener):
 
         # raw_msg_listener是原始消息接收监听器
         self.__raw_msg_listener_map = dict()
+        # 设置原始消息监听器，用于接收平台下发的原始设备消息
+        self.__raw_device_msg_listener: Optional[RawDeviceMessageListener] = None
         # 设置消息监听器，用于接收平台下发的设备消息
         self.__device_msg_listener: Optional[DeviceMessageListener] = None
         # 属性监听器，用于接收平台下发的属性读写操作
@@ -431,20 +435,22 @@ class DeviceClient(RawMessageListener):
         Args:
             message: 原始数据
         """
-        try:
-            self._logger.debug("receive message from platform, topic = %s, msg = %s", message.topic,
-                               str(message.payload))
-            device_msg_dict = json.loads(message.payload)
-        except Exception as e:
-            self._logger.error("json.loads failed, Exception: %s", str(e))
-            raise e
-        device_msg = DeviceMessage()
-        device_msg.convert_from_dict(device_msg_dict)
-        if self.__device_msg_listener is not None and (
-                device_msg.device_id is None or device_msg.device_id == self.__connect_auth_info.id):
-            self.__device_msg_listener.on_device_message(device_msg)
-        else:
-            self._device.on_device_message(device_msg)
+        self._logger.debug(f"receive message from platform, topic = {message.topic}, msg = {message.payload}")
+
+        raw_device_message = RawDeviceMessage(message.payload)
+        device_msg = raw_device_message.to_device_message()
+
+        if self.__raw_device_msg_listener is not None:
+            self.__raw_device_msg_listener.on_raw_device_message(raw_device_message)
+
+        if device_msg is not None:
+            is_current_device = device_msg.device_id is None \
+                                or len(device_msg.device_id) == 0 \
+                                or device_msg.device_id == self.__connect_auth_info.id
+            if self.__device_msg_listener is not None and is_current_device:
+                self.__device_msg_listener.on_device_message(device_msg)
+            else:
+                self._device.on_device_message(device_msg)
 
     def on_command(self, message: RawMessage):
         """
@@ -631,6 +637,19 @@ class DeviceClient(RawMessageListener):
             self._logger.error("json.dumps failed, Exception: %s", str(e))
             raise e
         self.publish_raw_message(RawMessage(topic, payload, self.__mqtt_connect_conf.qos), listener)
+
+    def set_raw_device_msg_listener(self, raw_device_msg_listener: RawDeviceMessageListener):
+        """
+        设置原始消息监听器，用于接收平台下发的消息，消息保持为二进制格式。
+        需要通过IoTDevice的getClient方法获取DeviceClient实例后，调用此方法设置消息监听器
+
+        Args:
+            raw_device_msg_listener:     消息监听器
+        """
+        if not isinstance(raw_device_msg_listener, RawDeviceMessageListener):
+            self._logger.error("device_msg_listener should be RawDeviceMessageListener type")
+            return
+        self.__raw_device_msg_listener = raw_device_msg_listener
 
     def set_device_msg_listener(self, device_msg_listener: DeviceMessageListener):
         """
