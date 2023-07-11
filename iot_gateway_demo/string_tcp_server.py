@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -42,8 +42,8 @@ class SimpleHandler:
     def __init__(self):
         server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
         port = 8883
-        device_id = "< Your DeviceId >"
-        secret = "< Your Device Secret >"
+        device_id = "your device id"  # 填入从云平台获取的设备id
+        secret = "your device secret"  # 填入从云平台获取的设备密钥
         iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
 
         connect_auth_info = ConnectAuthInfo()
@@ -60,7 +60,7 @@ class SimpleHandler:
         self._gateway.create_by_secret(server_uri=server_uri,
                                        port=port,
                                        device_id=device_id,
-                                       secret=sc,
+                                       secret=secret,
                                        iot_cert_file=iot_ca_cert_path)
         # 设置网关新增/删除子设备请求响应监听器
         self._gateway.set_gtw_operate_sub_device_listener(GtwOpSubDeviceListener(self._gateway))
@@ -76,8 +76,8 @@ class SimpleHandler:
         :param stream:  IOStream
         :param msg:     消息
         """
-        device_id = msg.split("|")[0]
-        content = msg.split("|")[1]
+        device_id, content = msg.split("|")[:2]
+
         node_id = get_node_id_from_device_id(device_id)
         try:
             if self._gateway.get_session(node_id) is None:
@@ -91,6 +91,7 @@ class SimpleHandler:
                     device_info.parent_device_id = self._gateway.get_device_id()
                     device_info.node_id = node_id
                     device_info.product_id = "6109fd1da42d680286bb1ff3"     # 产品id，由用户自行修改
+                    device_info.description = "new device at node {}".format(node_id)   # 必填
                     device_info.device_id = device_id
                     device_info.name = node_id
                     infos = [device_info]
