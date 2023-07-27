@@ -70,7 +70,7 @@ if TYPE_CHECKING:
 class DeviceClient(RawMessageListener):
     _logger = logging.getLogger(__name__)
     # SDK版本信息，不能更改
-    __SDK_VERSION = "Python_v1.1.2"
+    __SDK_VERSION = "Python_v1.1.3"
     __SERVER_INFO_PATH = os.path.join(sys.path[0], "server_info.json")
     __SERVER_URI = "server_uri"
     __PORT = "port"

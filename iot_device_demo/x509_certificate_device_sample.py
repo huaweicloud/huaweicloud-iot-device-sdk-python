@@ -32,12 +32,13 @@ logger = logging.getLogger(__name__)
 
 
 def run():
-    server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+    # 替换为真正的接入地址、device id、证书、和key
+    server_uri = "access address"
     port = 8883
-    device_id = "< Your DeviceId >"
+    device_id = "your device id"
     iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
-    cert_path = "< x509证书的pem >"
-    key_path = "< x509证书的key >"
+    cert_path = "x509证书的pem"
+    key_path = "x509证书的key"
 
     connect_auth_info = ConnectAuthInfo()
     connect_auth_info.server_uri = server_uri

@@ -24,7 +24,6 @@ import utime
 from iot_device_sdk_micropython.client import IoTClientConfig
 from iot_device_sdk_micropython.client import IotClient
 
-
 # 日志设置
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,9 +31,11 @@ logger = logging.getLogger(__name__)
 
 def run():
     # 客户端配置
-    client_cfg = IoTClientConfig(server_ip='xxxxxx.iot-mqtts.cn-north-4.myhuaweicloud.com',
-                                 device_id='<your device id>',
-                                 secret='<your secret>')
+    client_cfg = IoTClientConfig(
+        # 替换为真正的接入地址、device id和密钥，参考readme_CN.md中“上传产品模型并注册设备”
+        server_ip='access address',
+        device_id='your device id',
+        secret='your secret')
     # 创建设备
     iot_client = IotClient(client_cfg)
     iot_client.connect()  # 建立连接
@@ -45,6 +46,7 @@ def run():
         logger.info(('device message, id = ', device_message.id))
         logger.info(('device message, name: ', device_message.name))
         logger.info(('device message. content: ', device_message.content))
+
     # 设置平台下发消息响应的回调
     iot_client.set_device_message_callback(message_callback)
     # 设置平台下发自定义topic消息响应的回调
@@ -75,12 +77,12 @@ def run():
         services = [{
             "service_id": "Agriculture",
             "properties": {
-                    "Temperature": tem,
-                    "Humidity": hum,
-                    "Luminance": lum,
-                    "LightStatus": "ON",
-                    "MotorStatus": "OFF"
-                    }
+                "Temperature": tem,
+                "Humidity": hum,
+                "Luminance": lum,
+                "LightStatus": "ON",
+                "MotorStatus": "OFF"
+            }
         }]
 
         iot_client.report_properties(services, 0)
