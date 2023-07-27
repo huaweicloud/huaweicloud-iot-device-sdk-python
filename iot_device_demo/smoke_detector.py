@@ -153,10 +153,11 @@ class SmokeDetectorService(AbstractService):
 
 
 def run():
-    server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+    # 替换为真正的接入地址、device id和密钥，参考readme_CN.md中“上传产品模型并注册设备”
+    server_uri = "access address"
     port = 8883
-    device_id = "< Your DeviceId >"
-    secret = "< Your Device Secret >"
+    device_id = "your device id"
+    secret = "your device secret"
     iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
 
     smoke_detector = SmokeDetector(server_uri=server_uri,

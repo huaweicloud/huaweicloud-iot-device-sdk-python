@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 def run():
     server_uri = "iot-bs.cn-north-4.myhuaweicloud.com"
     port = 8883
-    device_id = "< Your DeviceId >"
-    secret = "< Your Device Secret >"
+    device_id = "your device id"
+    secret = "your device secret"
     iot_cert_file_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
 
     connect_auth_info = ConnectAuthInfo()

@@ -47,10 +47,11 @@
 
 <h1 id="0">SDK Version</h1>
 
-| version |change type|explanation|
-|:--------|:---|:---|
-| 1.1.2   |add new feature|add support for micropython and corresponding demo, downlonding OTA from OBS, and readme|
-| 1.1.1   |add new feature|provide ability to access Huawei IoT platform, enable users to implement business scenarios such as secure access, device management, data collection, and command delivery|
+|version|change type|explanation|
+|:-|:-|:-|
+|1.1.3|enhance function|update server ca certificate|
+|1.1.2|add new feature|add support for micropython and corresponding demo, downloading OTA from OBS, and readme|
+|1.1.1|add new feature|provide ability to access Huawei IoT platform, enable users to implement business scenarios such as secure access, device management, data collection, and command delivery|
 
 
 <h1 id="1">About This Document</h1>
@@ -153,10 +154,10 @@ Command delivery and message tracing are available.
    * If you use port 1883 and secret authentication for device access, write the obtained device ID and secret.
 
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # Change the access address to the one you saved.
+       server_uri = "access address"   # Change the access address to the one you saved.
        port = 1883
-       device_id = "< Your DeviceId >"
-       sc = "< Your Device Secret >"
+       device_id = "your device id"
+       sc = "your device secret"
 
        device = IotDevice()
        device.create_by_secret(server_uri=server_uri,
@@ -169,10 +170,10 @@ Command delivery and message tracing are available.
      Preset certificate: **/iot_device_demo/resources/GlobalSignRSAOVSSLCA2018.crt.pem**
 
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # Change the access address to the one you saved.
+       server_uri = "access address"   # Change the access address to the one you saved.
        port = 8883
-       device_id = "< Your DeviceId >"
-       sc = "< Your Device Secret >"
+       device_id = "your device id"
+       sc = "your device secret"
        # CA certificate of the IoT platform, used for server authentication.
        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
 

@@ -36,11 +36,11 @@ def run():
     server_uri = "iot-bs.cn-north-4.myhuaweicloud.com"
     port = 8883
     # device_id可以自己随意命名，用一个唯一标识设备身份的ID
-    device_id = "< Your DeviceId >"
+    device_id = "your device id"
     iot_cert_file_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
-    cert_path = "< x509证书的key >"
-    key_path = "< x509证书的pem >"
-    scope_id = "< ScopeId >"
+    cert_path = "x509证书的key"
+    key_path = "x509证书的pem"
+    scope_id = "ScopeId"
 
     connect_auth_info = ConnectAuthInfo()
     connect_auth_info.server_uri = server_uri

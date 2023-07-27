@@ -38,7 +38,7 @@ class TestPropertyMethod(TestCase):
         is_connected.return_value = True
 
         # setup
-        server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+        server_uri = "access address"
         port = 8883
         self.device_id = "productId_nodeId"
         secret = "12345678"

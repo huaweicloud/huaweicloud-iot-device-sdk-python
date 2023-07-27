@@ -49,6 +49,7 @@
 
 |版本|变更类型|说明|
 |:-|:-|:-|
+|1.1.3|功能增强|更新服务端ca证书|
 |1.1.2|新增功能|增加micropython支持和对应demo，从OBS下载OTA，以及说明文档|
 |1.1.1|新增功能|提供对接华为云IoT物联网平台能力，方便用户实现安全接入、设备管理、数据采集、命令下发等业务场景|
 
@@ -104,13 +105,10 @@ iot_gateway_demo：网关与子设备管理demo演示代码
 
 * 访问[设备接入服务](https://www.huaweicloud.com/product/iothub.html) ，单击“立即使用”进入设备接入控制台。
 
-* 查看平台接入地址。
+* 点击“接入信息”,查看MQTT设备接入地址并保存该地址。
 
-   ![](./doc/figure_cn/upload_profile_0.png)
+   ![](./doc/figure_cn/get_access_address.png)
 
-* 查看MQTT设备接入地址，保存该地址。
-
-   ![](./doc/figure_cn/upload_profile_1.png)
 
 * 在设备接入控制台选择“产品”，单击右上角的”创建产品”，在弹出的页面中，填写“产品名称“、“协议类型”、“数据格式”、“厂商名称”、“所属行业”、“设备类型”等信息，然后点击右下角“立即创建”。
 
@@ -153,10 +151,10 @@ iot_gateway_demo：网关与子设备管理demo演示代码
    * 如果您使用1883端口通过密钥鉴权接入平台，需要写入获取的设备ID、密钥。
 
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # 需要改为用户保存的接入地址
+       server_uri = "access address"   # 需要改为用户保存的接入地址
        port = 1883
-       device_id = "< Your DeviceId >"
-       sc = "< Your Device Secret >"
+       device_id = "your device id"
+       sc = "your device secret"
    
        device = IotDevice()
        device.create_by_secret(server_uri=server_uri,
@@ -169,10 +167,10 @@ iot_gateway_demo：网关与子设备管理demo演示代码
    预置的证书：/iot_device_demo/resources/GlobalSignRSAOVSSLCA2018.crt.pem
   
    ```
-       server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"   # 需要改为用户保存的接入地址
+       server_uri = "access address"   # 需要改为用户保存的接入地址
        port = 8883
-       device_id = "< Your DeviceId >"
-       sc = "< Your Device Secret >"
+       device_id = "your device id"
+       sc = "your device secret"
        # iot平台的CA证书，用于服务端校验
        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
    
