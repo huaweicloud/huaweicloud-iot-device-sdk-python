@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,13 +20,16 @@ from iot_device_sdk_python.ota.ota_package_info import OTAPackageInfo
 from iot_device_sdk_python.ota.ota_package_info_v2 import OTAPackageInfoV2
 from typing import Union
 
+from iot_device_sdk_python.ota.ota_query_version import OTAQueryVersion
+
+
 class OTAListener(metaclass=ABCMeta):
     """
     OTA监听器
     """
 
     @abstractmethod
-    def on_query_version(self):
+    def on_query_version(self, queryInfo: OTAQueryVersion):
         """
         接收查询版本通知
         """

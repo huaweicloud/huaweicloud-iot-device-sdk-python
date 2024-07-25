@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,10 +17,13 @@
 原始消息类
 """
 
+from paho.mqtt.client import PayloadType
+
+
 class RawMessage:
     def __init__(self, topic: str, payload: str, qos: int = 1):
         self._topic: str = topic
-        self._payload: str = payload
+        self._payload: PayloadType = payload
         self._qos: int = qos
 
     @property
@@ -55,4 +58,3 @@ class RawMessage:
     @qos.setter
     def qos(self, value):
         self._qos = value
-

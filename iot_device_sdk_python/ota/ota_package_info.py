@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,17 +14,22 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from typing import Optional
+from typing import Optional, Union
 
 
 class OTAPackageInfo:
     def __init__(self):
         self._url: str = ""
         self._version: str = ""
-        self._file_size: Optional[int] = None
         self._access_token: str = ""
+        self._task_id: str = None
+        self._file_size: Optional[int] = None
+        self._file_name: str = ""
         self._expires: Optional[int] = None
         self._sign: str = ""
+        self._custom_info: str = None
+        self._sub_device_count: Optional[int] = None
+        self._task_ext_info: Union[str, dict] = None
 
     @property
     def url(self):
@@ -49,6 +54,17 @@ class OTAPackageInfo:
         self._version = value
 
     @property
+    def sign(self):
+        """
+        软固件包SHA-256值
+        """
+        return self._sign
+
+    @sign.setter
+    def sign(self, value):
+        self._sign = value
+
+    @property
     def file_size(self):
         """
         软固件包文件大小
@@ -58,6 +74,17 @@ class OTAPackageInfo:
     @file_size.setter
     def file_size(self, value):
         self._file_size = value
+
+    @property
+    def file_name(self):
+        """
+        软固件包名称
+        """
+        return self._file_name
+
+    @file_name.setter
+    def file_name(self, value):
+        self._file_name = value
 
     @property
     def access_token(self):
@@ -82,22 +109,66 @@ class OTAPackageInfo:
         self._expires = value
 
     @property
-    def sign(self):
+    def custom_info(self):
         """
-        软固件包SHA-256值
+        下发的包的自定义信息
         """
-        return self._sign
+        return self._custom_info
 
-    @sign.setter
-    def sign(self, value):
-        self._sign = value
+    @custom_info.setter
+    def custom_info(self, value):
+        self._custom_info = value
+
+    @property
+    def sub_device_count(self):
+        """
+        网关模式下，升级中子设备数量
+        """
+        return self._sub_device_count
+
+    @sub_device_count.setter
+    def sub_device_count(self, value):
+        self._sub_device_count = value
+
+    @property
+    def task_id(self):
+        """
+        网关模式下，创建升级任务的任务ID
+        """
+        return self._task_id
+
+    @task_id.setter
+    def task_id(self, value):
+        self._task_id = value
+
+    @property
+    def task_ext_info(self):
+        """
+        批量升级任务额外扩展信息
+        """
+        return self._task_ext_info
+
+    @task_ext_info.setter
+    def task_ext_info(self, value):
+        self._task_ext_info = value
 
     def to_dict(self):
-        return {"url": self._url, "version": self._version, "file_size": self._file_size,
-                "access_token": self._access_token, "expires": self._expires, "sign": self._sign}
+        dict_info = {"url": self._url, "version": self._version, "file_size": self._file_size,
+                     "file_name": self._file_name, "access_token": self._access_token,
+                     "expires": self._expires, "sign": self._sign}
+        if self._custom_info is not None:
+            dict_info["custom_info"] = self._custom_info
+        if self._task_id is not None:
+            dict_info["task_id"] = self._task_id
+        if self._sub_device_count is not None:
+            dict_info["sub_device_count"] = self._sub_device_count
+        if self._task_ext_info is not None:
+            dict_info["task_ext_info"] = self._task_ext_info
+        return dict_info
 
     def convert_from_dict(self, json_dict: dict):
-        json_name = ["url", "version", "file_size", "access_token", "expires", "sign"]
+        json_name = ["url", "version", "file_size", "file_name", "access_token", "expires", "sign", "custom_info",
+                     "task_id", "sub_device_count", "task_ext_info"]
         for key in json_dict.keys():
             if key not in json_name:
                 continue
@@ -109,10 +180,19 @@ class OTAPackageInfo:
                 self.file_size = json_dict.get(key)
             elif key == "access_token":
                 self.access_token = json_dict.get(key)
+            elif key == "file_name":
+                self.file_name = json_dict.get(key)
             elif key == "expires":
                 self.expires = json_dict.get(key)
+            elif key == "sub_device_count":
+                self.sub_device_count = json_dict.get(key)
             elif key == "sign":
                 self.sign = json_dict.get(key)
+            elif key == "custom_info":
+                self.custom_info = json_dict.get(key)
+            elif key == "task_id":
+                self.task_id = json_dict.get(key)
+            elif key == "task_ext_info":
+                self.task_ext_info = json_dict.get(key)
             else:
                 pass
-

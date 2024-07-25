@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import threading
 import logging
 
 from iot_device_sdk_python.client.request.device_event import DeviceEvent
+from iot_device_sdk_python.ota.ota_query_version import OTAQueryVersion
 from iot_device_sdk_python.transport.action_listener import ActionListener
 from iot_device_sdk_python.utils.iot_util import get_event_time
 from iot_device_sdk_python.ota.ota_listener import OTAListener
@@ -76,7 +77,11 @@ class OTAService(AbstractService):
 
         if device_event.event_type == "version_query":
             # 查询版本
-            self._ota_listener.on_query_version()
+            info: dict = device_event.paras
+            queryInfo = OTAQueryVersion()
+            if info is not None:
+                queryInfo.convert_from_dict(info)
+            self._ota_listener.on_query_version(queryInfo)
         elif device_event.event_type == "firmware_upgrade" or device_event.event_type == "software_upgrade":
             # 版本升级
             pkg: dict = device_event.paras

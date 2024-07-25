@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -40,11 +40,12 @@ class SimpleHandler:
     _logger = logging.getLogger(__name__)
 
     def __init__(self):
-        server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+        # 替换为真正的接入地址、device id和密钥，参考readme_CN.md中“上传产品模型并注册设备”
+        server_uri = "access address"
         port = 8883
         device_id = "your device id"  # 填入从云平台获取的设备id
         secret = "your device secret"  # 填入从云平台获取的设备密钥
-        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
+        iot_ca_cert_path = "./resources/root.pem"
 
         connect_auth_info = ConnectAuthInfo()
         connect_auth_info.server_uri = server_uri
@@ -90,7 +91,7 @@ class SimpleHandler:
                     device_info = AddedSubDeviceInfo()
                     device_info.parent_device_id = self._gateway.get_device_id()
                     device_info.node_id = node_id
-                    device_info.product_id = "6109fd1da42d680286bb1ff3"     # 产品id，由用户自行修改
+                    device_info.product_id = "668619463030681a7de586d6"     # 产品id，由用户自行修改
                     device_info.description = "new device at node {}".format(node_id)   # 必填
                     device_info.device_id = device_id
                     device_info.name = node_id

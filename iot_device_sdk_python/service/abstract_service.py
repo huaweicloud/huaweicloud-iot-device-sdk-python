@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -52,7 +52,7 @@ class AbstractService(IService):
         读属性回调
 
         Args:
-            properties:  指定读取的属性名列表，若列表为空则读取全部可读属性
+            properties:  指定读取的属性名列表，若列表为[]则读取全部可读属性
         Returns:
             dict:    属性值
         """

@@ -52,9 +52,12 @@ sdk依赖于[`hmac`](https://github.com/micropython/micropython-lib/blob/master/
 ![](./doc/micro/package_structure.png)
 
 # 运行demo
+
 ```python
 import usys
-usys.path.append("/usr") # /usr更改成存放micropython sdk的根目录
-import iot_device_demo.micro_message_sample
-iot_device_demo.micro_message_sample.run()
+
+usys.path.append("/usr")  # /usr更改成存放micropython sdk的根目录
+import iot_device_demo.message.micro_message_sample
+
+iot_device_demo.message.micro_message_sample.run()
 ```
