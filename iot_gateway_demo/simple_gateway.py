@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,6 +22,8 @@ from tornado.iostream import IOStream
 from iot_device_sdk_python.client.client_conf import ClientConf
 from iot_device_sdk_python.client.request.command import Command
 from iot_device_sdk_python.client.request.command_response import CommandRsp
+from iot_device_sdk_python.client.request.device_event import DeviceEvent
+from iot_device_sdk_python.client.request.device_events import DeviceEvents
 from iot_device_sdk_python.client.request.device_message import DeviceMessage
 from iot_device_sdk_python.client.request.service_property import ServiceProperty
 from iot_device_sdk_python.gateway.abstract_gateway import AbstractGateway
@@ -194,4 +196,54 @@ class SimpleGateway(AbstractGateway):
         """
         # 不建议平台直接读子设备的属性
         self._logger.error("not support on_sub_dev_properties_get")
+
+    def on_sub_dev_event(self, device_events: DeviceEvents):
+        node_id = get_node_id_from_device_id(device_events.device_id)
+        if not node_id:
+            self._logger.error("node_id get from device_id is None")
+            return
+        if node_id not in self._node_id2session_dict.keys():
+            self._logger.error("node_id not found in node_id2session_dict: " + node_id)
+            return
+        session: Session = self._node_id2session_dict.get(node_id)
+        if not session:
+            self._logger.error("session is None, node_id:" + node_id)
+            return
+        # 这里直接把属性列表转成string发给子设备
+        str_events = str(device_events.to_dict())
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            # 将命令转发给子设备
+            loop.run_until_complete(session.stream.write(bytes(str_events.encode("utf-8"))))
+        except Exception as e:
+            self._logger.error("session.stream.write failed, Exception: " + traceback.format_exc())
+        finally:
+            loop.close()
+        self._logger.info("gateway sent property set to sub device")
+
+        # 为了简化处理，我们在这里直接回事件响应。更合理的做法是在子设备处理完后再回响应
+        ota_type_list = ["firmware_upgrade", "firmware_upgrade", "firmware_upgrade_v2", "software_upgrade_v2"]
+        for service in device_events.services:
+            if service.service_id != "$ota":
+                continue
+            device_event = DeviceEvent()
+            if service.event_type == "version_query":
+                device_event.service_id = "$ota"
+                device_event.event_type = "version_report"
+                paras = dict()
+                paras["fw_version"] = "v1.0"
+                paras["sw_version"] = "v1.0"
+                device_event.paras = paras
+                self.get_client().report_sub_event(device_events.device_id, device_event)
+            if service.event_type in ota_type_list:
+                device_event.service_id = "$ota"
+                device_event.event_type = "upgrade_progress_report"
+                paras = dict()
+                paras["result_code"] = 0
+                paras["version"] = service.paras["version"]
+                device_event.paras = paras
+                self.get_client().report_sub_event(device_events.device_id, device_event)
+        self._logger.info("gateway respond_properties_set")
 

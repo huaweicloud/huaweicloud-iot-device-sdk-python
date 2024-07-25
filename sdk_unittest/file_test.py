@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -58,11 +58,11 @@ class TestFileManagerMethod(TestCase):
         is_connected.return_value = True
 
         # setup
-        server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+        server_uri = "access address"
         port = 8883
         self.device_id = "productId_nodeId"
         secret = "12345678"
-        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
+        iot_ca_cert_path = "./resources/root.pem"
 
         connect_auth_info = ConnectAuthInfo()
         connect_auth_info.server_uri = server_uri

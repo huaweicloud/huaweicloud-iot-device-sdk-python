@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -27,10 +27,10 @@ class DefaultPublishActionListener(ActionListener):
         """
         发布成功
         """
-        print("publish message success!")
+        print(message)
 
     def on_failure(self, message: str, e: Optional[Exception]):
         """
         发布失败
         """
-        print("publish message failed!")
+        print(message)

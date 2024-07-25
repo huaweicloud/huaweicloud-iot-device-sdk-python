@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,6 +22,8 @@ from iot_device_sdk_python.client.connect_auth_info import ConnectAuthInfo
 from iot_device_sdk_python.client.device_client import DeviceClient
 from iot_device_sdk_python.filemanager.file_manager_service import FileManagerService
 from iot_device_sdk_python.ota.ota_service import OTAService
+from iot_device_sdk_python.rule.model.action_handler import ActionHandler
+from iot_device_sdk_python.rule.rule_manage_service import RuleManageService
 from iot_device_sdk_python.service.abstract_device import AbstractDevice
 from iot_device_sdk_python.service.abstract_service import AbstractService
 from iot_device_sdk_python.timesync.time_sync_service import TimeSyncService
@@ -96,6 +98,10 @@ class IotDevice(AbstractDevice):
         """
         self._logger.debug("get FileManagerService")
         return super().get_file_manager_service()
+
+    def get_rule_manage_service(self) -> RuleManageService:
+        self._logger.debug("get RuleManageService")
+        return super().get_rule_manage_service()
 
     def destroy(self):
         """

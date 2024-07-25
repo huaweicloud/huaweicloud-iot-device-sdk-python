@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -39,6 +39,9 @@ from iot_device_sdk_python.filemanager.file_manager_service import FileManagerSe
 from iot_device_sdk_python.devicelog.device_log_service import DeviceLogService
 from iot_device_sdk_python.devicelog.listener.default_conn_log_listener import DefaultConnLogListener
 from iot_device_sdk_python.utils.iot_util import get_event_time
+from iot_device_sdk_python.rule.rule_manage_service import RuleManageService
+from iot_device_sdk_python.rule.model.action_handler import ActionHandler
+from iot_device_sdk_python.rule.model.actions import Action
 
 
 class AbstractDevice:
@@ -62,6 +65,7 @@ class AbstractDevice:
         self._file_manager: Optional[FileManagerService] = None
         self._time_sync_service: Optional[TimeSyncService] = None
         self._device_log_service: Optional[DeviceLogService] = None
+        self._rule_manage_service: Optional[RuleManageService] = None
 
         self._init_sys_services()
 
@@ -78,6 +82,8 @@ class AbstractDevice:
         self.add_service(service_id="$file_manager", device_service=self._file_manager)
         self._device_log_service = DeviceLogService()
         self.add_service(service_id="$log", device_service=self._device_log_service)
+        self._rule_manage_service = RuleManageService(self._client)
+        self.add_service(service_id="$device_rule", device_service=self._rule_manage_service)
 
     def connect(self):
         """
@@ -90,7 +96,7 @@ class AbstractDevice:
         # TODO 需要优化
         if self._device_log_service and self._device_log_service.can_report_log():
             default_conn_log_listener = DefaultConnLogListener(self._device_log_service)
-            self._client.set_connect_listener(default_conn_log_listener)
+            self._client.add_connect_listener(default_conn_log_listener)
 
             default_conn_action_log_listener = DefaultConnActionLogListener(self._device_log_service)
             self._client.set_connect_action_listener(default_conn_action_log_listener)
@@ -271,6 +277,17 @@ class AbstractDevice:
             else:
                 self._logger.warning("device_service is None: %s", event.service_id)
 
+    def on_rule_action_handler(self, action_list: List[Action]):
+        if action_list:
+            for action in action_list:
+                if self.get_device_id() != action.device_id:
+                    self._logger.warning("action device is not match: target: %s, action: %s", self.get_device_id(),
+                                         action.device_id)
+                    continue
+                self.get_rule_manage_service().handle_action(action)
+            return
+        self._logger.warning("rule action list is empty.")
+
     def on_device_message(self, message: DeviceMessage):
         """
         消息回调，由SDK自动调用
@@ -316,9 +333,11 @@ class AbstractDevice:
         """
         return self._file_manager
 
+    def get_rule_manage_service(self) -> RuleManageService:
+        return self._rule_manage_service
+
     def destroy(self):
         """
         释放连接
         """
         self._client.close()
-

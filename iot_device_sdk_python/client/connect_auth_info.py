@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -59,11 +59,32 @@ class ConnectAuthInfo:
         """ 协议类型，不填则默认为MQTT """
         self._protocol: str = self.PROTOCOL_MQTT
 
-        """ 0表示直连模式，1表示标准设备发放流程，2表示通过自注册的方式进行批量发放；默认为1 """
-        self._bs_mode: int = self.BS_MODE_STANDARD_BOOTSTRAP
+        """ 0表示直连模式，1表示标准设备发放流程，2表示通过自注册的方式进行批量发放；默认为0 """
+        self._bs_mode: int = self.BS_MODE_DIRECT_CONNECT
+
+        """ 设备发放平台的证书路径 """
+        self._bs_cert_path: Optional[str] = None
+
+        """ 设备发放时上报的消息 ，在静态策略数据上报方式中，需要在上报的属性 “baseStrategyKeyword” 包含设置的关键字"""
+        self._bs_message: Optional[str] = None
 
         """ 是否校验时间戳，"0"表示HMACSHA256不校验时间戳，"1"表示HMACSHA256校验时间戳；默认为"1"。 """
         self._check_timestamp: str = "1"
+
+        """ 是否支持重连，True表示支持重连， False表示不支持重连"""
+        self._reconnect_on_failure = True
+        """ 最小退避时间， 默认1s"""
+        self._min_backoff = 1 * 1000  # 1s
+        """ 最大退避时间，默认30s"""
+        self._max_backoff = 30 * 1000
+        """ 是否开启端侧规则"""
+        self._enable_rule_manage = False
+        """ max buffer max"""
+        self._max_buffer_message = 0
+        """ qos1时最多可以同时发布多条消息，默认20条 """
+        self._inflight_messages: Optional[int] = 20
+        """ 是否自动上报版本号"""
+        self._auto_report_device_info: Optional[bool] = False
 
     @property
     def id(self):
@@ -187,6 +208,28 @@ class ConnectAuthInfo:
         self._bs_mode = value
 
     @property
+    def bs_cert_path(self):
+        """
+        设备发放平台的证书路径
+        """
+        return self._bs_cert_path
+
+    @bs_cert_path.setter
+    def bs_cert_path(self, value):
+        self._bs_cert_path = value
+
+    @property
+    def bs_message(self):
+        """
+        静态策略数据上报方式下上报的数据
+        """
+        return self._bs_message
+
+    @bs_message.setter
+    def bs_message(self, value):
+        self._bs_message = value
+
+    @property
     def check_timestamp(self):
         """
         是否校验时间戳，默认为"1"
@@ -197,3 +240,80 @@ class ConnectAuthInfo:
     def check_timestamp(self, value):
         self._check_timestamp = value
 
+    @property
+    def reconnect_on_failure(self):
+        """
+        是否支持重连，TRUE支持重连
+        """
+        return self._reconnect_on_failure
+
+    @reconnect_on_failure.setter
+    def reconnect_on_failure(self, value):
+        self._reconnect_on_failure = value
+
+    @property
+    def min_backoff(self):
+        """
+        最小退避时间
+        """
+        return self._min_backoff
+
+    @min_backoff.setter
+    def min_backoff(self, value):
+        self._min_backoff = value
+
+    @property
+    def max_backoff(self):
+        """
+        最大退避时间
+        """
+        return self._max_backoff
+
+    @max_backoff.setter
+    def max_backoff(self, value):
+        self._max_backoff = value
+
+    @property
+    def enable_rule_manage(self):
+        """
+        是否支持端侧规则
+        """
+        return self._enable_rule_manage
+
+    @enable_rule_manage.setter
+    def enable_rule_manage(self, value):
+        self._enable_rule_manage = value
+
+    @property
+    def max_buffer_message(self):
+        """
+        最大缓存消息，默认为0，不缓存消息
+        断链时，生产失败的消息存放队列，待重连后重新发送
+        """
+        return self._max_buffer_message
+
+    @max_buffer_message.setter
+    def max_buffer_message(self, value):
+        self._max_buffer_message = value
+
+    @property
+    def inflight_messages(self):
+        """
+        qos1时最多可以同时发布多条消息，默认20条
+        """
+        return self._inflight_messages
+
+    @inflight_messages.setter
+    def inflight_messages(self, value):
+        self._inflight_messages = value
+
+    @property
+    def auto_report_device_info(self):
+        """
+        qos1时最多可以同时发布多条消息，默认20条
+        """
+        return self._auto_report_device_info
+
+    @auto_report_device_info.setter
+    def auto_report_device_info(self, value):
+        self._auto_report_device_info = value

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -45,7 +45,7 @@ def get_event_time():
     return datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def get_client_id(device_id=None, psw_sig_type="0"):
+def get_client_id(device_id=None, psw_sig_type="0", timestamp=""):
     """
     一机一密的设备clientId由4个部分组成：设备ID、设备身份标识类型（固定值为0）、密码签名类型、时间戳，通过下划线分割
     psw_sig_type为密码签名类型
@@ -55,13 +55,14 @@ def get_client_id(device_id=None, psw_sig_type="0"):
     Args:
         device_id:  设备id
         psw_sig_type:   密码签名类型
+        timestamp: 时间戳
     Returns:
         str: clientId
     """
     if not isinstance(device_id, str):
         raise ValueError("device_id should be a string type")
 
-    return device_id + "_0_" + psw_sig_type + "_" + get_timestamp()
+    return device_id + "_0_" + psw_sig_type + "_" + timestamp
 
 
 def sha256_hash_from_file(file_path):
@@ -72,11 +73,16 @@ def sha256_hash_from_file(file_path):
         return hash_value
 
 
-def sha256_mac(secret):
-    secret_key = get_timestamp().encode("utf-8")
+def sha256_mac(secret, timestamp):
+    secret_key = timestamp.encode("utf-8")
     secret = secret.encode("utf-8")
     password = hmac.new(secret_key, secret, digestmod=hashlib.sha256).hexdigest()
     return password
+
+
+def sha256_mac_salt(secret, salt):
+    secret_key = salt.encode("utf-8")
+    return hmac.new(secret_key, secret, digestmod=hashlib.sha256).hexdigest()
 
 
 def get_request_id_from_msg(msg):

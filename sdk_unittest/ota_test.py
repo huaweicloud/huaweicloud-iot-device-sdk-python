@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2022 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -23,6 +23,7 @@ from iot_device_sdk_python.client.connect_auth_info import ConnectAuthInfo
 from iot_device_sdk_python.iot_device import IotDevice
 from iot_device_sdk_python.ota.ota_listener import OTAListener
 from iot_device_sdk_python.ota.ota_package_info import OTAPackageInfo
+from iot_device_sdk_python.ota.ota_query_version import OTAQueryVersion
 from iot_device_sdk_python.ota.ota_service import OTAService
 
 
@@ -34,7 +35,7 @@ class OTATestListener(OTAListener):
     def __init__(self, result_dict: dict):
         self.result_dict = result_dict
 
-    def on_query_version(self):
+    def on_query_version(self, queryInfo: OTAQueryVersion):
         """
         接收查询版本通知
         """
@@ -59,11 +60,11 @@ class TestOTAMethod(TestCase):
         is_connected.return_value = True
 
         # setup
-        server_uri = "iot-mqtts.cn-north-4.myhuaweicloud.com"
+        server_uri = "access address"
         port = 8883
         self.device_id = "productId_nodeId"
         secret = "12345678"
-        iot_ca_cert_path = "./resources/GlobalSignRSAOVSSLCA2018.crt.pem"
+        iot_ca_cert_path = "./resources/root.pem"
 
         connect_auth_info = ConnectAuthInfo()
         connect_auth_info.server_uri = server_uri

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-# Copyright (c) 2020-2023 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2024 Huawei Cloud Computing Technology Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -31,11 +31,11 @@ from __future__ import absolute_import, division, annotations
 from typing import TYPE_CHECKING, List, Optional
 import json
 import logging
-import secrets
 import time
 import traceback
 import sys
 import os
+import stat
 
 from iot_device_sdk_python.client.connect_auth_info import ConnectAuthInfo
 from iot_device_sdk_python.client.iot_result import IotResult
@@ -62,6 +62,8 @@ from iot_device_sdk_python.client.request.command_response import CommandRsp
 from iot_device_sdk_python.client.request.props_set import PropSet
 from iot_device_sdk_python.client.request.props_get import PropsGet
 from iot_device_sdk_python.client.request.device_base_info import DeviceBaseInfo
+from iot_device_sdk_python.rule.model.action_handler import ActionHandler
+from iot_device_sdk_python.rule.model.actions import Action
 
 if TYPE_CHECKING:
     from iot_device_sdk_python.service.abstract_device import AbstractDevice
@@ -70,11 +72,12 @@ if TYPE_CHECKING:
 class DeviceClient(RawMessageListener):
     _logger = logging.getLogger(__name__)
     # SDK版本信息，不能更改
-    __SDK_VERSION = "Python_v1.1.2"
+    __SDK_VERSION = "Python_v1.2.0"
     __SERVER_INFO_PATH = os.path.join(sys.path[0], "server_info.json")
     __SERVER_URI = "server_uri"
     __PORT = "port"
-    __BOOTSTRAP_TIMEOUT = 3.0
+    __SECRET = "secret"
+    __BOOTSTRAP_TIMEOUT = 10.0
 
     def __init__(self, connect_auth_info: ConnectAuthInfo, mqtt_connect_conf: MqttConnectConf, device: AbstractDevice):
         self.check_connect_auth_info(connect_auth_info)
@@ -90,14 +93,11 @@ class DeviceClient(RawMessageListener):
             self._logger.error("Current SDK only supports PROTOCOL_MQTT.")
             return
 
-        self.__default_backoff = 1000
-        self.__retry_times = 0
-        self.__min_backoff = 1 * 1000    # 1s
-        self.__max_backoff = 30 * 1000   # 30s
 
         # 设备发放是否成功
         self.__bs_flag = False
-
+        # 是否开启端侧规则
+        self.__enable_rule_manage = connect_auth_info.enable_rule_manage
         # raw_msg_listener是原始消息接收监听器
         self.__raw_msg_listener_map = dict()
         # 设置原始消息监听器，用于接收平台下发的原始设备消息
@@ -110,6 +110,8 @@ class DeviceClient(RawMessageListener):
         self.__command_listener: Optional[CommandListener] = None
         # 影子监听器，用于接收平台下发的设备影子数据
         self.__shadow_listener: Optional[DeviceShadowListener] = None
+        # 端侧规则监听器，用于自定义处理端侧规则
+        self.__rule_action_handler: Optional[ActionHandler] = None
 
     @staticmethod
     def check_connect_auth_info(connect_auth_info: ConnectAuthInfo):
@@ -188,26 +190,33 @@ class DeviceClient(RawMessageListener):
                 if "server_uri" in server_info_dict.keys() and "port" in server_info_dict.keys():
                     server_uri = server_info_dict.get(self.__SERVER_URI)
                     port = server_info_dict.get(self.__PORT)
+                    secret = server_info_dict.get(self.__SECRET)
                     self.__connect_auth_info.server_uri = server_uri
                     self.__connect_auth_info.port = port
+                    if secret:
+                        self.__connect_auth_info.secret = secret
                 else:
                     # 进行设备发放
                     rc = self.__bootstrap()
                     if rc != 0:
+                        # 发放失败
+                        self._logger.error("bootstrap device failed.")
                         return rc
             else:
                 # 进行设备发放
                 rc = self.__bootstrap()
                 if rc != 0:
+                    # 发放失败
+                    self._logger.error("bootstrap device failed.")
                     return rc
-
-        # 建立设备到iot平台的连接
+        # 建立设备到iot平台的连接， 将连接模式设置为直连。
+        self.__connect_auth_info.bs_mode = ConnectAuthInfo.BS_MODE_DIRECT_CONNECT
         rc = self.__connect()
         if rc != 0:
             return rc
-
-        # 建链成功后，SDK自动上报版本号，软固件版本号由设备上报
-        self.report_device_info(DeviceBaseInfo())
+        if self.__connect_auth_info.auto_report_device_info:
+            # 建链成功后，SDK自动上报版本号，软固件版本号由设备上报
+            self.report_device_info(DeviceBaseInfo())
         return rc
 
     def __connect(self):
@@ -217,38 +226,7 @@ class DeviceClient(RawMessageListener):
         Returns:
             int: 结果码，0表示连接成功，其他表示连接失败
         """
-        rc = self.__connection.connect()
-
-        # rc为0表示建链成功，其它表示连接不成功
-        if rc != 0:
-            self._logger.error("connect failed with result code: %s", str(rc))
-            if rc == 4:
-                self._logger.error("connect failed with bad username or password, "
-                                   "reconnection will not be performed")
-                return rc
-
-        while rc != 0:
-            # 退避重连
-            low_bound = int(self.__default_backoff * 0.8)
-            high_bound = int(self.__default_backoff * 1.0)
-            random_backoff = secrets.randbelow(high_bound - low_bound)
-            backoff_with_jitter = int(pow(2, self.__retry_times)) * (random_backoff + low_bound)
-            wait_time_ms = self.__max_backoff if (self.__min_backoff + backoff_with_jitter) > self.__max_backoff else (
-                    self.__min_backoff + backoff_with_jitter)
-            wait_time_s = round(wait_time_ms / 1000, 2)
-            self._logger.info("client will try to reconnect after %s s", str(wait_time_s))
-            time.sleep(wait_time_s)
-            self.__retry_times += 1
-            self.close()    # 释放之前的connection
-            rc = self.__connection.connect()
-            # rc为0表示建链成功，其它表示连接不成功
-            if rc != 0:
-                self._logger.error("connect with result code: %s", str(rc))
-                if rc == 4:
-                    self._logger.error("connect failed with bad username or password, "
-                                       "reconnection will not be performed")
-                    return rc
-        return rc
+        return self.__connection.connect()
 
     def __bootstrap(self):
         """
@@ -260,7 +238,7 @@ class DeviceClient(RawMessageListener):
         bs_topic = "$oc/devices/" + self.__connect_auth_info.id + "/sys/bootstrap/down"
         self.__connection.subscribe_topic(bs_topic, 0)
         topic = "$oc/devices/" + self.__connect_auth_info.id + "/sys/bootstrap/up"
-        raw_message = RawMessage(topic, "")
+        raw_message = RawMessage(topic, self.__connect_auth_info.bs_message)
         self.publish_raw_message(raw_message)
         start_time = time.time()
         while True:
@@ -353,7 +331,13 @@ class DeviceClient(RawMessageListener):
         except Exception as e:
             self._logger.error("json.dumps failed, Exception: %s", str(e))
             raise e
+
         self.publish_raw_message(RawMessage(topic, payload, self.__mqtt_connect_conf.qos), listener)
+        """
+        处理端侧规则
+        """
+        if self.__enable_rule_manage:
+            self._device.get_rule_manage_service().handle_rule(services)
 
     def get_device_shadow(self, request_id: str, service_id: Optional[str] = None,
                           object_device_id: Optional[str] = None, listener: Optional[ActionListener] = None):
@@ -401,6 +385,30 @@ class DeviceClient(RawMessageListener):
             raise e
         self.publish_raw_message(RawMessage(topic, payload, self.__mqtt_connect_conf.qos), listener)
 
+    def report_sub_event(self, sub_device_id: str, device_event: DeviceEvent,
+                         listener: Optional[ActionListener] = None):
+        """
+        子设备事件上报
+
+        Args:
+            sub_device_id:   子设备ID
+            device_event:    事件
+            listener:        发布监听器，若不设置监听器则设为None
+        """
+        device_events = DeviceEvents()
+        device_events.device_id = self.__connect_auth_info.id
+        if sub_device_id is not None:
+            device_events.device_id = sub_device_id
+        device_events.services = [device_event]
+
+        topic = "$oc/devices/" + self.__connect_auth_info.id + "/sys/events/up"
+        try:
+            payload = json.dumps(device_events.to_dict())
+        except Exception as e:
+            self._logger.error("json.dumps failed, Exception: %s", str(e))
+            raise e
+        self.publish_raw_message(RawMessage(topic, payload, self.__mqtt_connect_conf.qos), listener)
+
     def respond_command(self, request_id: str, command_response: CommandRsp, listener: Optional[ActionListener] = None):
         """
         上报命令响应
@@ -435,7 +443,7 @@ class DeviceClient(RawMessageListener):
         Args:
             message: 原始数据
         """
-        self._logger.debug(f"receive message from platform, topic = {message.topic}, msg = {message.payload}")
+        self._logger.debug(f"receive message from platform, topic = %s, msg = %s", message.topic, message.payload)
 
         raw_device_message = RawDeviceMessage(message.payload)
         device_msg = raw_device_message.to_device_message()
@@ -475,6 +483,12 @@ class DeviceClient(RawMessageListener):
         else:
             self._device.on_command(request_id, command)
 
+    def on_rule_command(self, request_id: str, command: Command):
+        if self.__command_listener is not None:
+            self.__command_listener.on_command(request_id, command.service_id, command.command_name, command.paras)
+            return
+        self._logger.warning("command listener was not config for rules.")
+
     def on_device_shadow(self, message: RawMessage):
         """
         处理平台设备影子数据下发。若当前DeviceClient设置了影子监听器，则执行此命令监听器的on_shadow_get()方法。
@@ -485,22 +499,20 @@ class DeviceClient(RawMessageListener):
         request_id = get_request_id_from_msg(message)
         try:
             payload: dict = json.loads(message.payload)
+            device_id: str = payload.get("object_device_id")
+            shadow_list: List[ShadowData] = list()
+            shadow_dict_list: list = payload.get("shadow")
+            for shadow_dict in shadow_dict_list:
+                shadow = ShadowData()
+                shadow.convert_from_dict(shadow_dict)
+                shadow_list.append(shadow)
+            if self.__shadow_listener is not None:
+                self.__shadow_listener.on_shadow_get(request_id, device_id, shadow_list)
+            else:
+                # 没有设置影子监听器，这里不做处理
+                pass
         except Exception as e:
-            self._logger.error("json.loads failed, Exception: %s", str(e))
-            raise e
-
-        device_id: str = payload.get("object_device_id")
-        shadow_list: List[ShadowData] = list()
-        shadow_dict_list: list = payload.get("shadow")
-        for shadow_dict in shadow_dict_list:
-            shadow = ShadowData()
-            shadow.convert_from_dict(shadow_dict)
-            shadow_list.append(shadow)
-
-        if self.__shadow_listener is not None:
-            self.__shadow_listener.on_shadow_get(request_id, device_id, shadow_list)
-        else:
-            # 没有设置影子监听器，这里不做处理
+            self._logger.error("handle device shadow failed, Exception: %s", str(e))
             pass
 
     def on_properties_set(self, message: RawMessage):
@@ -571,6 +583,18 @@ class DeviceClient(RawMessageListener):
             return
         self._device.on_event(device_events)
 
+    def on_rule_action_handler(self, action: List[Action]):
+        """
+        处理端侧规则
+
+        Args:
+            action: 原始数据
+        """
+        if self.__rule_action_handler is not None:
+            self.__rule_action_handler.handle_rule_action(action)
+            return
+        self._device.on_rule_action_handler(action)
+
     def on_bootstrap(self, message: RawMessage):
         """
         处理设备发放信息
@@ -586,13 +610,17 @@ class DeviceClient(RawMessageListener):
             self._logger.error("json.loads failed, Exception: %s", str(e))
             raise e
         address = str(payload.get("address"))
+        device_secret = payload.get("deviceSecret")
         self.__connect_auth_info.server_uri = address.split(":")[0]
         self.__connect_auth_info.port = int(address.split(":")[-1])
+        if device_secret:
+            self.__connect_auth_info.secret = device_secret
         # 设备发放成功，保存获取的iot平台地址和端口
         if os.path.exists(self.__SERVER_INFO_PATH):
             os.remove(self.__SERVER_INFO_PATH)
         server_info_dict = {self.__SERVER_URI: self.__connect_auth_info.server_uri,
-                            self.__PORT: self.__connect_auth_info.port}
+                            self.__PORT: self.__connect_auth_info.port,
+                            self.__SECRET: device_secret}
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         modes = stat.S_IWUSR | stat.S_IRUSR
         with os.fdopen(os.open(self.__SERVER_INFO_PATH, flags, modes), 'w') as server_info:
@@ -703,6 +731,19 @@ class DeviceClient(RawMessageListener):
             return
         self.__shadow_listener = device_shadow_listener
 
+    def set_rule_action_handler(self, rule_action_handler: ActionHandler):
+        """
+        设置端侧规则监听器，用于自定义处理端侧规则
+        需要通过IoTDevice的getClient方法获取DeviceClient实例后，调用此方法设置消息监听器
+
+        Args:
+            rule_action_handler: 端侧规则监听器
+        """
+        if not isinstance(rule_action_handler, ActionHandler):
+            self._logger.error("rule_action_handler should be ActionHandler")
+            return
+        self.__rule_action_handler = rule_action_handler
+
     def subscribe_topic(self, topic: str, qos: int, message_listener):
         """
         订阅自定义topic。此接口只能用于订阅自定义topic
@@ -716,14 +757,14 @@ class DeviceClient(RawMessageListener):
         self.__connection.subscribe_topic(topic, qos)
         self.__raw_msg_listener_map[topic] = message_listener
 
-    def set_connect_listener(self, connect_listener):
+    def add_connect_listener(self, connect_listener):
         """
         设置链路监听器，用户接收链路建立和断开事件
 
         Args:
             connect_listener: 链路监听器
         """
-        self.__connection.set_connect_listener(connect_listener)
+        self.__connection.add_connect_listener(connect_listener)
 
     def set_connect_action_listener(self, connect_action_listener):
         """
@@ -752,3 +793,6 @@ class DeviceClient(RawMessageListener):
                        "fw_version": device_info.fw_version}
         device_event.paras = paras
         self.report_event(device_event, listener)
+
+    def enable_rule_manage(self):
+        return self.__enable_rule_manage
