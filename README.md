@@ -2,7 +2,6 @@
 
 # iot-device-sdk-python Development Guide
 
-[TOC]
 # 0.Version update instructions
 | version |change type|explanation|
 |:--------|:-|:-|
